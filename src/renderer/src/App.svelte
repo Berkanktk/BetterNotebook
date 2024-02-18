@@ -4,13 +4,12 @@
   import moonLogo from './assets/moon.svg'
   import sunLogo from './assets/sun.svg'
   import searchIcon from './assets/search.svg'
-  import counterIcon from './assets/counter.svg'
 
   let text: string = ''
-  // let searchQuery: string = ''
-  // let replaceQuery: string = ''
-  // let searchResult: string = ''
-  // let showSearchAndReplace: boolean = false
+  let searchQuery: string = ''
+  let replaceQuery: string = ''
+  let searchResult: string = ''
+  let showSearchAndReplace: boolean = false
 
   let theme: string = 'dark'
 
@@ -37,11 +36,31 @@
         text = text.replace(mathPattern, `${result.toFixed(2)} `);
       } catch (error) {
         console.error('Error evaluating expression:', error);
-  }
-    }
       }
+    }
+  }
   
-    
+  // Function to perform a search and replace operation
+  function performSearchAndReplace() {
+    if (text && searchQuery && replaceQuery) {
+      text = text.replace(new RegExp(searchQuery, 'g'), replaceQuery);
+    } else if (text && searchQuery) {
+      searchResult = text.match(new RegExp(searchQuery, 'g'))?.join(', ') || '';
+      highlight(searchQuery);
+      console.log(searchResult);
+    }
+  }
+
+  function highlight(text) {
+    var inputText = document.getElementById("inputText");
+    var innerHTML = inputText.innerHTML;
+    var index = innerHTML.indexOf(text);
+    if (index >= 0) { 
+    innerHTML = innerHTML.substring(0,index) + "<span class='highlight'>" + innerHTML.substring(index,index+text.length) + "</span>" + innerHTML.substring(index + text.length);
+    inputText.innerHTML = innerHTML;
+    }
+  }
+
 </script>
 
 <div class="notebook" id="theme" class:dark={theme === 'dark'} class:light={theme === 'light'}>
@@ -70,25 +89,27 @@
         <option value="uppercase">UPPERCASE</option>
         <option value="lowercase">lowercase</option>
         <option value="capitalize">Capitalize</option>
-        <option value="sentencecase">Sentence case</option>
-        <option value="inversecase">iNVERSE CASE</option>
-        <option value="alternatingcase">AlTeRnAtInG cAsE</option>
+        <option value="sentencecase">Sentence</option>
+        <option value="inversecase">iNVERSE</option>
+        <option value="alternatingcase">AlTeRnAtInG</option>
         <option value="reverse">esreveR</option>
       </select>
 
-      <button class="btn">
-        <img src={counterIcon} alt="search" />
+      <div class="vertical">|</div>
+
+      {#if !showSearchAndReplace}
+        <input type="text" placeholder="Search" bind:value={searchQuery}/>
+        <input type="text" placeholder="Replace" bind:value={replaceQuery} />
+      {/if}
+
+      <button class="btn" on:click={performSearchAndReplace}>
+        <img src={searchIcon} alt="search"/>
+        {replaceQuery == "" ? "Search" : "Replace"}
       </button>
+
     </div>
 
     <div class="feature-list">
-      <input type="text" placeholder="Search" />
-      <input type="text" placeholder="Replace" />
-
-      <button class="btn">
-        <img src={searchIcon} alt="search" />
-      </button>
-
       <button class="btn" on:click={toggleTheme}>
         <img
           src={theme === 'light' ? moonLogo : sunLogo}
@@ -98,7 +119,7 @@
     </div>
   </div>
 
-  <textarea bind:value={text} spellcheck="false" />
+  <textarea bind:value={text} spellcheck="false" on:input={handleInput} id="inputText"/>
 
   <div class="info-view">
     <span>C: {text.length}</span>
