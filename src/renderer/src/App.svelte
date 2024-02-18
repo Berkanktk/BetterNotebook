@@ -52,6 +52,21 @@
     const matchMath = text.match(math)
     selectedCase = 'none'
 
+    const lines = text.split('\n');
+    const newTextLines = lines.map((line) => {
+      if (line.endsWith('* ')) {
+        // If there's text before the "* ", add a bullet point on a new line.
+        if (line.trim().length > 1) {
+          return line.replace(/\* $/, '') + '\n• ';
+        } else { 
+          // If "* " is at the start, replace it with a bullet point on the same line.
+          return line.replace(/\* $/, '• ');
+        }
+      }
+      return line;
+    });
+    text = newTextLines.join('\n');
+
     if (text.includes('$now')) {
       text = text.replace(
         '$now',
@@ -170,6 +185,40 @@
     frequencyActive = !frequencyActive
   }
 
+  function handleKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    const textarea = event.target as HTMLTextAreaElement;
+    let text = textarea.value;
+    const cursorPosition = textarea.selectionStart;
+    const lineStart = text.lastIndexOf('\n', cursorPosition - 1) + 1;
+    const lineText = text.substring(lineStart, cursorPosition);
+
+    // If Enter is pressed on an empty bullet point line, remove the bullet point
+    if (lineText.trim() === '•') {
+      event.preventDefault(); // Prevent the default Enter key behavior
+      const newText = text.substring(0, lineStart) + text.substring(cursorPosition);
+      textarea.value = newText; 
+      text = newText;
+
+      // Move the cursor to the start of the new line
+      textarea.setSelectionRange(lineStart, lineStart);
+    } else if (lineText.trim().startsWith('•')) {
+      event.preventDefault();
+      const beforeCursor = text.substring(0, cursorPosition);
+      const afterCursor = text.substring(cursorPosition);
+      const newText = `${beforeCursor}\n• ${afterCursor}`;
+      textarea.value = newText;
+      text = newText;
+
+      const newPosition = cursorPosition + '• '.length + 1;
+      textarea.setSelectionRange(newPosition, newPosition);
+    }
+  }
+}
+
+
+
+
   $: if (searchQuery === '') {
     searchQuery = ''
     ipcClear()
@@ -249,6 +298,7 @@
       bind:value={text}
       spellcheck="false"
       on:input={handleInput}
+      on:keydown={handleKeyDown} 
       id="inputText"
       style={`font-size: ${textSize}; line-height: ${lineHeight};`}
     />
@@ -289,7 +339,7 @@
     background-color: yellow;
     color: black;
   }
-  
+
   :global(::-moz-selection) {
     background-color: yellow;
     color: black;
