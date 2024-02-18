@@ -1,4 +1,13 @@
 <script lang="ts">
+  import {
+    capitalizeText,
+    sentenceCase,
+    invertCase,
+    randomCase,
+    reverseText,
+    calculateWordFrequency
+  } from './components/Helpers'
+
   const wordsPerMinute = 200
   const speechPerMinute = 125
   import moonLogo from './assets/moon.svg'
@@ -10,8 +19,16 @@
   let replaceQuery: string = ''
   let searchResult: string = ''
   let showSearchAndReplace: boolean = false
+  let selectedSize: string = 'medium'
+  let textSize: string = '16px'
+  let selectedLineHeight: string = 'medium'
+  let lineHeight: string = '1.35'
+  let selectedCase: string = 'none'
+  let textCase: string = 'none'
 
   let theme: string = 'dark'
+  const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
+  const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
 
   $: readingTime = text ? Math.ceil(text.split(' ').length / wordsPerMinute) : 0
   $: speechTime = text ? Math.ceil(text.split(' ').length / speechPerMinute) : 0
@@ -26,47 +43,123 @@
   }
 
   function handleInput() {
-    const mathPattern = /\$(.+)=/;
-    const match = text.match(mathPattern);
-    
-    if (match) {
-      let expression = match[1].trim(); 
+    const math = /\$(.+)=/
+    const matchMath = text.match(math)
+    selectedCase = 'none'
+
+    if (text.includes('$now')) {
+      text = text.replace(
+        '$now',
+        new Date()
+          .toLocaleString('en-GB', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          })
+          .replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3/$1/$2')
+      )
+    } else if (text.includes('$date')) {
+      text = text.replace(
+        '$date',
+        new Date().toLocaleDateString('en-GB', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        })
+        .replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3/$1/$2')
+      )
+    } else if (text.includes('$time')) {
+      text = text.replace(
+        '$time',
+        new Date().toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        })
+      )
+    } else if (text.includes('$day')) {
+      text = text.replace('$day', new Date().toLocaleDateString('en-GB', { weekday: 'long' }))
+    }
+
+    if (matchMath) {
+      let expression = matchMath[1].trim()
       try {
-        let result = eval(expression); 
-        text = text.replace(mathPattern, `${result.toFixed(2)} `);
+        let result = eval(expression)
+        text = text.replace(math, `${result.toFixed(2)} `)
       } catch (error) {
-        console.error('Error evaluating expression:', error);
+        console.error('Error evaluating expression:', error)
       }
     }
   }
-  
+
   // Function to perform a search and replace operation
   function performSearchAndReplace() {
     if (text && searchQuery && replaceQuery) {
-      text = text.replace(new RegExp(searchQuery, 'g'), replaceQuery);
+      text = text.replace(new RegExp(searchQuery, 'gi'), replaceQuery)
+      searchQuery = ''
+      replaceQuery = ''
     } else if (text && searchQuery) {
-      searchResult = text.match(new RegExp(searchQuery, 'g'))?.join(', ') || '';
-      highlight(searchQuery);
-      console.log(searchResult);
+      searchResult = text.match(new RegExp(searchQuery, 'gi'))?.join(', ') || ''
+      ipcFind()
     }
   }
 
-  function highlight(text) {
-    var inputText = document.getElementById("inputText");
-    var innerHTML = inputText.innerHTML;
-    var index = innerHTML.indexOf(text);
-    if (index >= 0) { 
-    innerHTML = innerHTML.substring(0,index) + "<span class='highlight'>" + innerHTML.substring(index,index+text.length) + "</span>" + innerHTML.substring(index + text.length);
-    inputText.innerHTML = innerHTML;
+  function handleTextSize() {
+    if (selectedSize === 'extra-small') {
+      textSize = '12px'
+    } else if (selectedSize === 'small') {
+      textSize = '14px'
+    } else if (selectedSize === 'medium') {
+      textSize = '16px'
+    } else if (selectedSize === 'large') {
+      textSize = '18px'
+    } else if (selectedSize === 'extra-large') {
+      textSize = '20px'
     }
   }
 
+  function handleLineHeight() {
+    if (selectedLineHeight === 'extra-small') {
+      lineHeight = '1.0'
+    } else if (selectedLineHeight === 'small') {
+      lineHeight = '1.25'
+    } else if (selectedLineHeight === 'medium') {
+      lineHeight = '1.35'
+    } else if (selectedLineHeight === 'large') {
+      lineHeight = '1.5'
+    } else if (selectedLineHeight === 'extra-large') {
+      lineHeight = '1.75'
+    }
+  }
+
+  function handleCase() {
+    if (selectedCase === 'uppercase') {
+      text = text.toUpperCase()
+    } else if (selectedCase === 'lowercase') {
+      text = text.toLowerCase()
+    } else if (selectedCase === 'capitalize') {
+      text = capitalizeText(text)
+    } else if (selectedCase === 'sentencecase') {
+      text = sentenceCase(text)
+    } else if (selectedCase === 'inversecase') {
+      text = invertCase(text)
+    } else if (selectedCase === 'alternatingcase') {
+      text = randomCase(text)
+    } else if (selectedCase === 'reverse') {
+      text = reverseText(text)
+    }
+  }
 </script>
 
 <div class="notebook" id="theme" class:dark={theme === 'dark'} class:light={theme === 'light'}>
   <div class="features">
     <div class="feature-list">
-      <select>
+      <select bind:value={selectedSize} on:change={handleTextSize}>
         <option value="none" selected disabled hidden>Text Size</option>
         <option value="extra-small">Extra Small</option>
         <option value="small">Small</option>
@@ -75,16 +168,16 @@
         <option value="extra-large">Extra Large</option>
       </select>
 
-      <select>
+      <select bind:value={selectedLineHeight} on:change={handleLineHeight}>
         <option value="none" selected disabled hidden>Line Height</option>
         <option value="extra-small">1.0</option>
         <option value="small">1.25</option>
         <option value="medium">1.35 (default)</option>
         <option value="large">1.5</option>
-        <option value="extra large">1.75</option>
+        <option value="extra-large">1.75</option>
       </select>
 
-      <select>
+      <select bind:value={selectedCase} on:change={handleCase}>
         <option value="none" selected disabled hidden>Text Case</option>
         <option value="uppercase">UPPERCASE</option>
         <option value="lowercase">lowercase</option>
@@ -98,15 +191,14 @@
       <div class="vertical">|</div>
 
       {#if !showSearchAndReplace}
-        <input type="text" placeholder="Search" bind:value={searchQuery}/>
+        <input type="text" placeholder="Search" bind:value={searchQuery} />
         <input type="text" placeholder="Replace" bind:value={replaceQuery} />
       {/if}
 
       <button class="btn" on:click={performSearchAndReplace}>
-        <img src={searchIcon} alt="search"/>
-        {replaceQuery == "" ? "Search" : "Replace"}
+        <img src={searchIcon} alt="search" />
+        {replaceQuery == '' ? 'Search' : 'Replace'}
       </button>
-
     </div>
 
     <div class="feature-list">
@@ -119,7 +211,13 @@
     </div>
   </div>
 
-  <textarea bind:value={text} spellcheck="false" on:input={handleInput} id="inputText"/>
+  <textarea
+    bind:value={text}
+    spellcheck="false"
+    on:input={handleInput}
+    id="inputText"
+    style={`font-size: ${textSize}; line-height: ${lineHeight};`}
+  />
 
   <div class="info-view">
     <span>C: {text.length}</span>

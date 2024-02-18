@@ -174,10 +174,6 @@ input[type="text"] {
   color: #808080;
 }
 
-.highlight {
-  background-color: yellow;
-}
-
 @media (max-width: 720px) {
   
 }
