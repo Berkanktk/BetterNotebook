@@ -6,9 +6,8 @@ import icon from '../../resources/icon.png?asset'
 let isWindows = process.platform === 'win32'
 
 function createWindow(): void {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
+    width: 1000,
     height: 670,
     show: false,
     autoHideMenuBar: false,
@@ -95,6 +94,14 @@ function createWindow(): void {
   ])
   
   Menu.setApplicationMenu(menu)
+
+  ipcMain.on('find', (event, searchTerm) => {
+    mainWindow.webContents.findInPage(searchTerm);
+  });
+
+  ipcMain.on('clear-find', () => {
+    mainWindow.webContents.stopFindInPage('clearSelection');
+  });
 }
 
 // This method will be called when Electron has finished
