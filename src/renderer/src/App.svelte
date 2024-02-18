@@ -34,6 +34,19 @@
   const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
   const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
 
+  window.electron.ipcRenderer.on('save-file', () => {
+    const contentToSave = text 
+    window.electron.ipcRenderer.send('save-dialog', contentToSave)
+  })
+
+  window.electron.ipcRenderer.on('open-file', () => {
+    window.electron.ipcRenderer.send('open-dialog')
+  })
+
+  window.electron.ipcRenderer.on('file-opened', (event, content) => {
+    text = content 
+  })
+
   $: frequencyData = calculateWordFrequency(text, frequencyData)
   $: readingTime = text ? Math.ceil(text.split(' ').length / wordsPerMinute) : 0
   $: speechTime = text ? Math.ceil(text.split(' ').length / speechPerMinute) : 0

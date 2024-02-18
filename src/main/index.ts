@@ -3,11 +3,14 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+const fs = require('fs');
+const path = require('path');
+
 let isWindows = process.platform === 'win32'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
-    width: 1000,
+    width: 1125,
     height: 670,
     show: false,
     autoHideMenuBar: false,
@@ -42,7 +45,16 @@ function createWindow(): void {
             {
                 label: 'Save',
                 accelerator: 'Ctrl+S',
-                // click: saveFile
+                click: () => {
+                  mainWindow.webContents.send('save-file');
+                }
+            },
+            {
+              label: 'Open',
+              accelerator: 'Ctrl+O',
+              click: () => {
+                mainWindow.webContents.send('open-file');
+              }
             },
             {
                 label: isWindows ? 'Exit' : 'Quit',
@@ -94,6 +106,35 @@ function createWindow(): void {
   ])
   
   Menu.setApplicationMenu(menu)
+
+  ipcMain.on('save-dialog', (event, content) => {
+    dialog.showSaveDialog(mainWindow, {
+      title: 'Save text file',
+      defaultPath: path.join(app.getPath('documents'), 'untitled.txt'),
+      filters: [{ name: 'Text Files', extensions: ['txt'] }]
+    }).then(result => {
+      if (!result.canceled) {
+        fs.writeFileSync(result.filePath, content);
+      }
+    }).catch(err => {
+      console.log(err);
+    });
+  });
+
+  ipcMain.on('open-dialog', (event) => {
+    dialog.showOpenDialog(mainWindow, {
+      title: 'Open text file',
+      properties: ['openFile'],
+      filters: [{ name: 'Text Files', extensions: ['txt'] }]
+    }).then(result => {
+      if (!result.canceled) {
+        const content = fs.readFileSync(result.filePaths[0], 'utf8');
+        mainWindow.webContents.send('file-opened', content);
+      }
+    }).catch(err => {
+      console.log(err);
+    });
+  });
 
   ipcMain.on('find', (event, searchTerm) => {
     mainWindow.webContents.findInPage(searchTerm);
