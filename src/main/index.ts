@@ -7,10 +7,11 @@ const fs = require('fs');
 const path = require('path');
 
 let isWindows = process.platform === 'win32'
+let mainWindow: BrowserWindow;
 
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
-    width: 1125,
+  mainWindow = new BrowserWindow({
+    width: 1055,
     height: 670,
     show: false,
     autoHideMenuBar: false,

@@ -268,7 +268,7 @@
         <option value="none" selected disabled hidden>Text Size</option>
         <option value="extra-small">Extra Small</option>
         <option value="small">Small</option>
-        <option value="medium">Medium (default)</option>
+        <option value="medium">Medium</option>
         <option value="large">Large</option>
         <option value="extra-large">Extra Large</option>
       </select>
@@ -277,7 +277,7 @@
         <option value="none" selected disabled hidden>Line Height</option>
         <option value="extra-small">1.0</option>
         <option value="small">1.25</option>
-        <option value="medium">1.35 (default)</option>
+        <option value="medium">1.35</option>
         <option value="large">1.5</option>
         <option value="extra-large">1.75</option>
       </select>
