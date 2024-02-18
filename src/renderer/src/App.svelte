@@ -52,20 +52,31 @@
     const matchMath = text.match(math)
     selectedCase = 'none'
 
-    const lines = text.split('\n');
-    const newTextLines = lines.map((line) => {
-      if (line.endsWith('* ')) {
-        // If there's text before the "* ", add a bullet point on a new line.
-        if (line.trim().length > 1) {
-          return line.replace(/\* $/, '') + '\n• ';
-        } else { 
-          // If "* " is at the start, replace it with a bullet point on the same line.
-          return line.replace(/\* $/, '• ');
-        }
+  // Handle bullet points and numbered lists
+  const lines = text.split('\n');
+  const newTextLines = lines.map((line, index, arr) => {
+    
+    // Handle bullet points triggered by "* "
+    if (line.endsWith('* ')) {
+      if (line.trim().length > 1) {
+        return line.replace(/\* $/, '') + '\n• ';
+      } else {
+        return line.replace(/\* $/, '• ');
       }
-      return line;
-    });
-    text = newTextLines.join('\n');
+    }
+
+    // Handle numbered lists triggered by "1. "
+    else if (/^\d+\. $/.test(line)) {
+      if (index > 0 && /^\d+\./.test(arr[index - 1].trim())) {
+        const prevNum = parseInt(arr[index - 1].match(/^(\d+)\./)[1]);
+        return line.replace(/^\d+\. $/, `${prevNum + 1}. `);
+      } else {
+        return '1. ';
+      }
+    }
+    return line;
+  });
+  text = newTextLines.join('\n');
 
     if (text.includes('$now')) {
       text = text.replace(
@@ -199,9 +210,8 @@
       const newText = text.substring(0, lineStart) + text.substring(cursorPosition);
       textarea.value = newText; 
       text = newText;
-
-      // Move the cursor to the start of the new line
       textarea.setSelectionRange(lineStart, lineStart);
+
     } else if (lineText.trim().startsWith('•')) {
       event.preventDefault();
       const beforeCursor = text.substring(0, cursorPosition);
@@ -210,13 +220,41 @@
       textarea.value = newText;
       text = newText;
 
+      // Adjust cursor position to after the newly added number
       const newPosition = cursorPosition + '• '.length + 1;
       textarea.setSelectionRange(newPosition, newPosition);
     }
+
+  // Handling for numbered lists
+  const numberMatch = lineText.match(/^(\d+)\.\s*(.*)$/);
+      if (numberMatch) {
+        event.preventDefault();
+        const currentNumber = parseInt(numberMatch[1]);
+        const restOfLineText = numberMatch[2];
+
+        if (restOfLineText === '') {
+          const beforeCursor = text.substring(0, lineStart); 
+          const afterCursor = text.substring(cursorPosition);
+          textarea.value = `${beforeCursor}${afterCursor}`;
+
+          // Move cursor to start of the new current line
+          const newPosition = beforeCursor.length + 1;
+          textarea.setSelectionRange(newPosition, newPosition);
+        } else {
+          const beforeCursor = text.substring(0, cursorPosition);
+          const afterCursor = text.substring(cursorPosition);
+          const newText = `${beforeCursor}\n${currentNumber + 1}. ${afterCursor}`;
+          textarea.value = newText;
+
+          // Adjust cursor position to after the newly added number
+          const newPosition = cursorPosition + `\n${currentNumber + 1}. `.length;
+          textarea.setSelectionRange(newPosition, newPosition);
+        }
+
+        text = textarea.value;
+      }
+    }
   }
-}
-
-
 
 
   $: if (searchQuery === '') {
