@@ -7,6 +7,7 @@
     reverseText,
     calculateWordFrequency
   } from './components/Helpers'
+  import Frequency from './components/Frequency.svelte'
 
   const wordsPerMinute = 200
   const speechPerMinute = 125
@@ -14,6 +15,7 @@
   import sunLogo from './assets/sun.svg'
   import searchIcon from './assets/search.svg'
   import trashIcon from './assets/trash.svg'
+  import frequencyIcon from './assets/frequency.svg'
 
   let text: string = ''
   let searchQuery: string = ''
@@ -25,11 +27,14 @@
   let lineHeight: string = '1.35'
   let selectedCase: string = 'none'
   let searchActive: boolean = false;
+  let frequencyData = {};
+  let frequencyActive: boolean = false;
 
   let theme: string = 'dark'
   const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
   const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
 
+  $: frequencyData = calculateWordFrequency(text, frequencyData);
   $: readingTime = text ? Math.ceil(text.split(' ').length / wordsPerMinute) : 0
   $: speechTime = text ? Math.ceil(text.split(' ').length / speechPerMinute) : 0
   $: averageWordLength = text
@@ -162,6 +167,10 @@
     searchActive = false
   }
 
+  function handleFrequency() {
+    frequencyActive = !frequencyActive
+  }
+
   $: if (searchQuery === '') {
     searchQuery = ''
     ipcClear()
@@ -200,7 +209,7 @@
         <option value="reverse">esreveR</option>
       </select>
 
-      <div class="vertical">|</div>
+      <div class="vertical-sm">|</div>
 
       {#if !showSearchAndReplace}
         <input type="text" placeholder="Search" bind:value={searchQuery} />
@@ -218,6 +227,12 @@
         Clear
       </button>
       {/if}
+
+      <div class="vertical-sm">|</div>
+
+      <button class="btn" on:click={handleFrequency}>
+        <img src={frequencyIcon} alt="frequency" />
+        Frequency</button>
     </div>
 
     <div class="feature-list">
@@ -230,13 +245,22 @@
     </div>
   </div>
 
-  <textarea
-    bind:value={text}
-    spellcheck="false"
-    on:input={handleInput}
-    id="inputText"
-    style={`font-size: ${textSize}; line-height: ${lineHeight};`}
-  />
+  <div class="frequency-area">
+    <textarea
+      bind:value={text}
+      spellcheck="false"
+      on:input={handleInput}
+      id="inputText"
+      style={`font-size: ${textSize}; line-height: ${lineHeight};`}
+    />
+
+    
+    {#if frequencyActive}
+      <div class="vertical"></div>
+      <Frequency {frequencyData} />
+    {/if}
+  </div>
+
 
   <div class="info-view">
     <span>C: {text.length}</span>
@@ -254,6 +278,7 @@
     background-color: #2c2c2c;
     width: 8px;
     height: 8px;
+    border-radius: 4px;
   }
 
   :global(::-webkit-scrollbar-thumb) {
