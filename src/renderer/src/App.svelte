@@ -26,15 +26,15 @@
   let selectedLineHeight: string = 'medium'
   let lineHeight: string = '1.35'
   let selectedCase: string = 'none'
-  let searchActive: boolean = false;
-  let frequencyData = {};
-  let frequencyActive: boolean = false;
+  let searchActive: boolean = false
+  let frequencyData = {}
+  let frequencyActive: boolean = false
 
   let theme: string = 'dark'
   const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
   const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
 
-  $: frequencyData = calculateWordFrequency(text, frequencyData);
+  $: frequencyData = calculateWordFrequency(text, frequencyData)
   $: readingTime = text ? Math.ceil(text.split(' ').length / wordsPerMinute) : 0
   $: speechTime = text ? Math.ceil(text.split(' ').length / speechPerMinute) : 0
   $: averageWordLength = text
@@ -52,31 +52,30 @@
     const matchMath = text.match(math)
     selectedCase = 'none'
 
-  // Handle bullet points and numbered lists
-  const lines = text.split('\n');
-  const newTextLines = lines.map((line, index, arr) => {
-    
-    // Handle bullet points triggered by "* "
-    if (line.endsWith('* ')) {
-      if (line.trim().length > 1) {
-        return line.replace(/\* $/, '') + '\n• ';
-      } else {
-        return line.replace(/\* $/, '• ');
+    // Handle bullet points and numbered lists
+    const lines = text.split('\n')
+    const newTextLines = lines.map((line, index, arr) => {
+      // Handle bullet points triggered by "* "
+      if (line.endsWith('* ')) {
+        if (line.trim().length > 1) {
+          return line.replace(/\* $/, '') + '\n• '
+        } else {
+          return line.replace(/\* $/, '• ')
+        }
       }
-    }
 
-    // Handle numbered lists triggered by "1. "
-    else if (/^\d+\. $/.test(line)) {
-      if (index > 0 && /^\d+\./.test(arr[index - 1].trim())) {
-        const prevNum = parseInt(arr[index - 1].match(/^(\d+)\./)[1]);
-        return line.replace(/^\d+\. $/, `${prevNum + 1}. `);
-      } else {
-        return '1. ';
+      // Handle numbered lists triggered by "1. "
+      else if (/^\d+\. $/.test(line)) {
+        if (index > 0 && /^\d+\./.test(arr[index - 1].trim())) {
+          const prevNum = parseInt(arr[index - 1].match(/^(\d+)\./)[1])
+          return line.replace(/^\d+\. $/, `${prevNum + 1}. `)
+        } else {
+          return '1. '
+        }
       }
-    }
-    return line;
-  });
-  text = newTextLines.join('\n');
+      return line
+    })
+    text = newTextLines.join('\n')
 
     if (text.includes('$now')) {
       text = text.replace(
@@ -96,12 +95,13 @@
     } else if (text.includes('$date')) {
       text = text.replace(
         '$date',
-        new Date().toLocaleDateString('en-GB', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        })
-        .replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3/$1/$2')
+        new Date()
+          .toLocaleDateString('en-GB', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          })
+          .replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3/$1/$2')
       )
     } else if (text.includes('$time')) {
       text = text.replace(
@@ -197,65 +197,63 @@
   }
 
   function handleKeyDown(event: KeyboardEvent) {
-  if (event.key === 'Enter') {
-    const textarea = event.target as HTMLTextAreaElement;
-    let text = textarea.value;
-    const cursorPosition = textarea.selectionStart;
-    const lineStart = text.lastIndexOf('\n', cursorPosition - 1) + 1;
-    const lineText = text.substring(lineStart, cursorPosition);
+    if (event.key === 'Enter') {
+      const textarea = event.target as HTMLTextAreaElement
+      let text = textarea.value
+      const cursorPosition = textarea.selectionStart
+      const lineStart = text.lastIndexOf('\n', cursorPosition - 1) + 1
+      const lineText = text.substring(lineStart, cursorPosition)
 
-    // If Enter is pressed on an empty bullet point line, remove the bullet point
-    if (lineText.trim() === '•') {
-      event.preventDefault(); // Prevent the default Enter key behavior
-      const newText = text.substring(0, lineStart) + text.substring(cursorPosition);
-      textarea.value = newText; 
-      text = newText;
-      textarea.setSelectionRange(lineStart, lineStart);
+      // If Enter is pressed on an empty bullet point line, remove the bullet point
+      if (lineText.trim() === '•') {
+        event.preventDefault() // Prevent the default Enter key behavior
+        const newText = text.substring(0, lineStart) + text.substring(cursorPosition)
+        textarea.value = newText
+        text = newText
+        textarea.setSelectionRange(lineStart, lineStart)
+      } else if (lineText.trim().startsWith('•')) {
+        event.preventDefault()
+        const beforeCursor = text.substring(0, cursorPosition)
+        const afterCursor = text.substring(cursorPosition)
+        const newText = `${beforeCursor}\n• ${afterCursor}`
+        textarea.value = newText
+        text = newText
 
-    } else if (lineText.trim().startsWith('•')) {
-      event.preventDefault();
-      const beforeCursor = text.substring(0, cursorPosition);
-      const afterCursor = text.substring(cursorPosition);
-      const newText = `${beforeCursor}\n• ${afterCursor}`;
-      textarea.value = newText;
-      text = newText;
+        // Adjust cursor position to after the newly added number
+        const newPosition = cursorPosition + '• '.length + 1
+        textarea.setSelectionRange(newPosition, newPosition)
+      }
 
-      // Adjust cursor position to after the newly added number
-      const newPosition = cursorPosition + '• '.length + 1;
-      textarea.setSelectionRange(newPosition, newPosition);
-    }
-
-  // Handling for numbered lists
-  const numberMatch = lineText.match(/^(\d+)\.\s*(.*)$/);
+      // Handling for numbered lists
+      const numberMatch = lineText.match(/^(\d+)\.\s*(.*)$/)
       if (numberMatch) {
-        event.preventDefault();
-        const currentNumber = parseInt(numberMatch[1]);
-        const restOfLineText = numberMatch[2];
+        event.preventDefault()
+        const currentNumber = parseInt(numberMatch[1])
+        const restOfLineText = numberMatch[2]
 
         if (restOfLineText === '') {
-          const beforeCursor = text.substring(0, lineStart); 
-          const afterCursor = text.substring(cursorPosition);
-          textarea.value = `${beforeCursor}${afterCursor}`;
+          const beforeCursor = text.substring(0, lineStart)
+          const afterCursor = text.substring(cursorPosition)
+          textarea.value = `${beforeCursor}${afterCursor}`
 
           // Move cursor to start of the new current line
-          const newPosition = beforeCursor.length + 1;
-          textarea.setSelectionRange(newPosition, newPosition);
+          const newPosition = beforeCursor.length + 1
+          textarea.setSelectionRange(newPosition, newPosition)
         } else {
-          const beforeCursor = text.substring(0, cursorPosition);
-          const afterCursor = text.substring(cursorPosition);
-          const newText = `${beforeCursor}\n${currentNumber + 1}. ${afterCursor}`;
-          textarea.value = newText;
+          const beforeCursor = text.substring(0, cursorPosition)
+          const afterCursor = text.substring(cursorPosition)
+          const newText = `${beforeCursor}\n${currentNumber + 1}. ${afterCursor}`
+          textarea.value = newText
 
           // Adjust cursor position to after the newly added number
-          const newPosition = cursorPosition + `\n${currentNumber + 1}. `.length;
-          textarea.setSelectionRange(newPosition, newPosition);
+          const newPosition = cursorPosition + `\n${currentNumber + 1}. `.length
+          textarea.setSelectionRange(newPosition, newPosition)
         }
 
-        text = textarea.value;
+        text = textarea.value
       }
     }
   }
-
 
   $: if (searchQuery === '') {
     searchQuery = ''
@@ -303,22 +301,23 @@
       {/if}
 
       {#if !searchActive}
-      <button class="btn" on:click={performSearchAndReplace}>
-        <img src={searchIcon} alt="search" />
-        {replaceQuery == '' ? 'Search' : 'Replace'}
-      </button>
+        <button class="btn" on:click={performSearchAndReplace}>
+          <img src={searchIcon} alt="search" />
+          {replaceQuery == '' ? 'Search' : 'Replace'}
+        </button>
       {:else}
-      <button class="btn" on:click={clearSearch}>
-        <img src={trashIcon} alt="trash" />
-        Clear
-      </button>
+        <button class="btn" on:click={clearSearch}>
+          <img src={trashIcon} alt="trash" />
+          Clear
+        </button>
       {/if}
 
       <div class="vertical-sm">|</div>
 
       <button class="btn" on:click={handleFrequency}>
         <img src={frequencyIcon} alt="frequency" />
-        Frequency</button>
+        Frequency</button
+      >
     </div>
 
     <div class="feature-list">
@@ -336,18 +335,16 @@
       bind:value={text}
       spellcheck="false"
       on:input={handleInput}
-      on:keydown={handleKeyDown} 
+      on:keydown={handleKeyDown}
       id="inputText"
       style={`font-size: ${textSize}; line-height: ${lineHeight};`}
     />
 
-    
     {#if frequencyActive}
       <div class="vertical"></div>
       <Frequency {frequencyData} />
     {/if}
   </div>
-
 
   <div class="info-view">
     <span>C: {text.length}</span>
