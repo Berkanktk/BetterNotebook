@@ -13,18 +13,18 @@
   import moonLogo from './assets/moon.svg'
   import sunLogo from './assets/sun.svg'
   import searchIcon from './assets/search.svg'
+  import trashIcon from './assets/trash.svg'
 
   let text: string = ''
   let searchQuery: string = ''
   let replaceQuery: string = ''
-  let searchResult: string = ''
   let showSearchAndReplace: boolean = false
   let selectedSize: string = 'medium'
   let textSize: string = '16px'
   let selectedLineHeight: string = 'medium'
   let lineHeight: string = '1.35'
   let selectedCase: string = 'none'
-  let textCase: string = 'none'
+  let searchActive: boolean = false;
 
   let theme: string = 'dark'
   const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
@@ -104,8 +104,8 @@
       searchQuery = ''
       replaceQuery = ''
     } else if (text && searchQuery) {
-      searchResult = text.match(new RegExp(searchQuery, 'gi'))?.join(', ') || ''
       ipcFind()
+      searchActive = true
     }
   }
 
@@ -154,6 +154,18 @@
       text = reverseText(text)
     }
   }
+
+  function clearSearch() {
+    searchQuery = ''
+    replaceQuery = ''
+    ipcClear()
+    searchActive = false
+  }
+
+  $: if (searchQuery === '') {
+    searchQuery = ''
+    ipcClear()
+  }
 </script>
 
 <div class="notebook" id="theme" class:dark={theme === 'dark'} class:light={theme === 'light'}>
@@ -195,10 +207,17 @@
         <input type="text" placeholder="Replace" bind:value={replaceQuery} />
       {/if}
 
+      {#if !searchActive}
       <button class="btn" on:click={performSearchAndReplace}>
         <img src={searchIcon} alt="search" />
         {replaceQuery == '' ? 'Search' : 'Replace'}
       </button>
+      {:else}
+      <button class="btn" on:click={clearSearch}>
+        <img src={trashIcon} alt="trash" />
+        Clear
+      </button>
+      {/if}
     </div>
 
     <div class="feature-list">
@@ -240,5 +259,13 @@
   :global(::-webkit-scrollbar-thumb) {
     background-color: #474747;
     border-radius: 4px;
+  }
+  :global(::selection) {
+    background-color: yellow;
+    color: black;
+  }
+  :global(::-moz-selection) {
+    background-color: yellow;
+    color: black;
   }
 </style>
