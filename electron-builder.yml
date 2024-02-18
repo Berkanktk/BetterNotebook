@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: betternotebook
+productName: BetterNotebook
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: betternotebook
+  executableName: BetterNotebook
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
