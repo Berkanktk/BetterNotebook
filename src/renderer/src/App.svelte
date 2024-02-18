@@ -102,7 +102,6 @@
     }
   }
 
-  // Function to perform a search and replace operation
   function performSearchAndReplace() {
     if (text && searchQuery && replaceQuery) {
       text = text.replace(new RegExp(searchQuery, 'gi'), replaceQuery)
@@ -285,10 +284,12 @@
     background-color: #474747;
     border-radius: 4px;
   }
+
   :global(::selection) {
     background-color: yellow;
     color: black;
   }
+  
   :global(::-moz-selection) {
     background-color: yellow;
     color: black;
