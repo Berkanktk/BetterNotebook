@@ -1,7 +1,9 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, Menu, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+
+let isWindows = process.platform === 'win32'
 
 function createWindow(): void {
   // Create the browser window.
@@ -9,7 +11,7 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -33,6 +35,66 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  const menu = Menu.buildFromTemplate([
+    {
+        label: 'File',
+        submenu: [
+            {
+                label: 'Save',
+                accelerator: 'Ctrl+S',
+                // click: saveFile
+            },
+            {
+                label: isWindows ? 'Exit' : 'Quit',
+                accelerator: isWindows ? 'Alt+F4' : 'CmdOrCtrl+Q',
+                click: () => app.quit()
+            }
+        ]
+    },
+    {
+        label: 'Edit',
+        submenu: [
+            { role: 'undo' },
+            { role: 'redo' },
+            { type: 'separator' },
+            { role: 'cut' },
+            { role: 'copy' },
+            { role: 'paste' },
+            { role: 'delete' },
+            { role: 'selectAll' }
+        ]
+    },
+    {
+        label: 'Window',
+        submenu: [
+            { role: 'minimize' },
+            { role: 'zoom' },
+            { role: 'close' }
+        ]
+    },
+    {
+        label: 'Help',
+        submenu: [
+            {
+                label: 'Learn More',
+                click: async () => {
+                    const { response } = await dialog.showMessageBox({
+                        type: 'info',
+                        buttons: ['OK', 'Learn More'],
+                        title: 'Learn More',
+                        message: 'This is a simple example of an Electron application with a main and renderer process.'
+                    })
+                    if (response === 1) {
+                        await shell.openExternal('https://www.electronjs.org/docs')
+                    }
+                }
+            }
+        ]
+    }
+  ])
+  
+  Menu.setApplicationMenu(menu)
 }
 
 // This method will be called when Electron has finished
