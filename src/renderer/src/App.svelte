@@ -25,6 +25,23 @@
   function toggleTheme() {
     theme = theme === 'light' ? 'dark' : 'light'
   }
+
+  function handleInput() {
+    const mathPattern = /\$(.+)=/;
+    const match = text.match(mathPattern);
+    
+    if (match) {
+      let expression = match[1].trim(); 
+      try {
+        let result = eval(expression); 
+        text = text.replace(mathPattern, `${result.toFixed(2)} `);
+      } catch (error) {
+        console.error('Error evaluating expression:', error);
+  }
+    }
+      }
+  
+    
 </script>
 
 <div class="notebook" id="theme" class:dark={theme === 'dark'} class:light={theme === 'light'}>

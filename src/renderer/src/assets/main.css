@@ -92,13 +92,14 @@ textarea {
   padding: 7px 15px;
   border: none;
   border-radius: 5px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   outline: none;
-  transition: ease-in-out 0.3s;;
   background-color: transparent;
+  color: #808080;
+  gap: 5px;
 }
 
 .btn img {
@@ -167,6 +168,14 @@ input[type="text"] {
   transition: ease-in-out 0.3s;;
   background-color: var(--color-background-soft);
   color: #808080;
+}
+
+.vertical {
+  color: #808080;
+}
+
+.highlight {
+  background-color: yellow;
 }
 
 @media (max-width: 720px) {
