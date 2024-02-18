@@ -204,24 +204,26 @@
       const lineStart = text.lastIndexOf('\n', cursorPosition - 1) + 1
       const lineText = text.substring(lineStart, cursorPosition)
 
-      // If Enter is pressed on an empty bullet point line, remove the bullet point
-      if (lineText.trim() === '•') {
-        event.preventDefault() // Prevent the default Enter key behavior
-        const newText = text.substring(0, lineStart) + text.substring(cursorPosition)
+      const insertText = (before, insert, after, offset = 0) => {
+        const newText = `${before}${insert}${after}`
         textarea.value = newText
-        text = newText
-        textarea.setSelectionRange(lineStart, lineStart)
-      } else if (lineText.trim().startsWith('•')) {
-        event.preventDefault()
-        const beforeCursor = text.substring(0, cursorPosition)
-        const afterCursor = text.substring(cursorPosition)
-        const newText = `${beforeCursor}\n• ${afterCursor}`
-        textarea.value = newText
-        text = newText
-
-        // Adjust cursor position to after the newly added number
-        const newPosition = cursorPosition + '• '.length + 1
+        const newPosition = before.length + insert.length + offset
         textarea.setSelectionRange(newPosition, newPosition)
+        return newText
+      }
+
+      const beforeCursor = text.substring(0, cursorPosition)
+      const afterCursor = text.substring(cursorPosition)
+
+      // Handle empty bullet points
+      if (lineText.trim() === '•') {
+        event.preventDefault()
+        text = insertText(text.substring(0, lineStart), '', afterCursor)
+      }
+      // Handle bullet points continuation
+      else if (lineText.trim().startsWith('•')) {
+        event.preventDefault()
+        text = insertText(beforeCursor, '\n• ', afterCursor, 1)
       }
 
       // Handling for numbered lists
@@ -232,25 +234,10 @@
         const restOfLineText = numberMatch[2]
 
         if (restOfLineText === '') {
-          const beforeCursor = text.substring(0, lineStart)
-          const afterCursor = text.substring(cursorPosition)
-          textarea.value = `${beforeCursor}${afterCursor}`
-
-          // Move cursor to start of the new current line
-          const newPosition = beforeCursor.length + 1
-          textarea.setSelectionRange(newPosition, newPosition)
+          text = insertText(text.substring(0, lineStart), '', afterCursor)
         } else {
-          const beforeCursor = text.substring(0, cursorPosition)
-          const afterCursor = text.substring(cursorPosition)
-          const newText = `${beforeCursor}\n${currentNumber + 1}. ${afterCursor}`
-          textarea.value = newText
-
-          // Adjust cursor position to after the newly added number
-          const newPosition = cursorPosition + `\n${currentNumber + 1}. `.length
-          textarea.setSelectionRange(newPosition, newPosition)
+          text = insertText(beforeCursor, `\n${currentNumber + 1}. `, afterCursor, 1)
         }
-
-        text = textarea.value
       }
     }
   }
