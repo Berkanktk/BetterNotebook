@@ -8,6 +8,8 @@
     calculateWordFrequency
   } from './components/Helpers'
   import Frequency from './components/Frequency.svelte'
+  import Select from './components/Select.svelte'
+  import ButtonImage from './components/ButtonImage.svelte'
 
   const wordsPerMinute = 200
   const speechPerMinute = 125
@@ -16,6 +18,9 @@
   import searchIcon from './assets/search.svg'
   import trashIcon from './assets/trash.svg'
   import frequencyIcon from './assets/frequency.svg'
+
+  const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
+  const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
 
   let text: string = ''
   let searchQuery: string = ''
@@ -29,13 +34,36 @@
   let searchActive: boolean = false
   let frequencyData = {}
   let frequencyActive: boolean = false
-
   let theme: string = 'dark'
-  const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
-  const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
+
+  let sizeOptions = [
+    { value: 'extra-small', label: '12px' },
+    { value: 'small', label: '14px' },
+    { value: 'medium', label: '16px' },
+    { value: 'large', label: '18px' },
+    { value: 'extra-large', label: '20px' }
+  ]
+
+  let selectedLineHeightOptions = [
+    { value: 'extra-small', label: '1.0' },
+    { value: 'small', label: '1.25' },
+    { value: 'medium', label: '1.35' },
+    { value: 'large', label: '1.5' },
+    { value: 'extra-large', label: '1.75' }
+  ]
+
+  let selectedCaseOptions = [
+    { value: 'uppercase', label: 'UPPERCASE' },
+    { value: 'lowercase', label: 'lowercase' },
+    { value: 'capitalize', label: 'Capitalize' },
+    { value: 'sentencecase', label: 'Sentence' },
+    { value: 'inversecase', label: 'iNVERSE' },
+    { value: 'alternatingcase', label: 'AlTeRnAtInG' },
+    { value: 'reverse', label: 'esreveR' }
+  ]
 
   window.electron.ipcRenderer.on('save-file', () => {
-    const contentToSave = text 
+    const contentToSave = text
     window.electron.ipcRenderer.send('save-dialog', contentToSave)
   })
 
@@ -44,7 +72,7 @@
   })
 
   window.electron.ipcRenderer.on('file-opened', (event, content) => {
-    text = content 
+    text = content
   })
 
   $: frequencyData = calculateWordFrequency(text, frequencyData)
@@ -264,34 +292,9 @@
 <div class="notebook" id="theme" class:dark={theme === 'dark'} class:light={theme === 'light'}>
   <div class="features">
     <div class="feature-list">
-      <select bind:value={selectedSize} on:change={handleTextSize}>
-        <option value="none" selected disabled hidden>Text Size</option>
-        <option value="extra-small">Extra Small</option>
-        <option value="small">Small</option>
-        <option value="medium">Medium</option>
-        <option value="large">Large</option>
-        <option value="extra-large">Extra Large</option>
-      </select>
-
-      <select bind:value={selectedLineHeight} on:change={handleLineHeight}>
-        <option value="none" selected disabled hidden>Line Height</option>
-        <option value="extra-small">1.0</option>
-        <option value="small">1.25</option>
-        <option value="medium">1.35</option>
-        <option value="large">1.5</option>
-        <option value="extra-large">1.75</option>
-      </select>
-
-      <select bind:value={selectedCase} on:change={handleCase}>
-        <option value="none" selected disabled hidden>Text Case</option>
-        <option value="uppercase">UPPERCASE</option>
-        <option value="lowercase">lowercase</option>
-        <option value="capitalize">Capitalize</option>
-        <option value="sentencecase">Sentence</option>
-        <option value="inversecase">iNVERSE</option>
-        <option value="alternatingcase">AlTeRnAtInG</option>
-        <option value="reverse">esreveR</option>
-      </select>
+      <Select bind:value={selectedSize} onChange={handleTextSize} options={sizeOptions}/>
+      <Select bind:value={selectedLineHeight} onChange={handleLineHeight} options={selectedLineHeightOptions}/>
+      <Select bind:value={selectedCase} onChange={handleCase} options={selectedCaseOptions}/>
 
       <div class="vertical-sm">|</div>
 
@@ -301,23 +304,18 @@
       {/if}
 
       {#if !searchActive}
-        <button class="btn" on:click={performSearchAndReplace}>
-          <img src={searchIcon} alt="search" />
-          {replaceQuery == '' ? 'Search' : 'Replace'}
-        </button>
+        {#if replaceQuery != ''}
+          <ButtonImage src={searchIcon} alt="replace" text="Replace" onClick={performSearchAndReplace} />
+        {:else}
+          <ButtonImage src={searchIcon} alt="search" text="Search" onClick={performSearchAndReplace} />
+        {/if}
       {:else}
-        <button class="btn" on:click={clearSearch}>
-          <img src={trashIcon} alt="trash" />
-          Clear
-        </button>
+        <ButtonImage src={trashIcon} alt="trash" text="Clear" onClick={clearSearch} />
       {/if}
 
       <div class="vertical-sm">|</div>
 
-      <button class="btn" on:click={handleFrequency}>
-        <img src={frequencyIcon} alt="frequency" />
-        Frequency</button
-      >
+      <ButtonImage src={frequencyIcon} alt="frequency" text="Frequency" onClick={handleFrequency} />
     </div>
 
     <div class="feature-list">
