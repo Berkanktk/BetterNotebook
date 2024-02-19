@@ -5,7 +5,7 @@
   "description": "An improved notebook experience made using Electron, Svelte and TypeScript.",
   "main": "./out/main/index.js",
   "author": "Berkan Kütük",
-  "homepage": "https://electron-vite.org",
+  "homepage": "https://github.com/Berkanktk/BetterNotebook",
   "scripts": {
     "format": "prettier --plugin prettier-plugin-svelte --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
