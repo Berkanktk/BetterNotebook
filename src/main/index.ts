@@ -98,11 +98,28 @@ function createWindow(): void {
                         type: 'info',
                         buttons: ['OK', 'Learn More'],
                         title: 'Learn More',
-                        message: 'This is a simple example of an Electron application with a main and renderer process.'
+                        message: 'See features and more on the GitHub page.'
                     })
                     if (response === 1) {
-                        await shell.openExternal('https://www.electronjs.org/docs')
+                        await shell.openExternal('https://github.com/Berkanktk/BetterNotebook')
                     }
+                }
+            },
+            {
+                label: 'About',
+                click: async () => {
+                    const { response } = await dialog.showMessageBox({
+                        type: 'info',
+                        buttons: ['OK'],
+                        title: 'About',
+                        message: 'An improved notebook experience made using Electron, Svelte and TypeScript.\n\nApp Version: ' + app.getVersion() + '\nElectron Version: ' + process.versions.electron + '\nNode.js Version: ' + process.versions.node + '\nChrome Version: ' + process.versions.chrome
+                    })
+                }
+            },
+            {
+                label: 'Report Issue',
+                click: async () => {
+                    await shell.openExternal('https://github.com/Berkanktk/BetterNotebook/issues')
                 }
             }
         ]
