@@ -4,10 +4,10 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 const fs = require('fs');
-const path = require('path');
 
 let isWindows = process.platform === 'win32'
 let mainWindow: BrowserWindow;
+let currentFilePath: string = '';
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -46,16 +46,12 @@ function createWindow(): void {
             {
                 label: 'Save',
                 accelerator: 'Ctrl+S',
-                click: () => {
-                  mainWindow.webContents.send('save-file');
-                }
+                click: () => saveFile(),
             },
             {
               label: 'Open',
               accelerator: 'Ctrl+O',
-              click: () => {
-                mainWindow.webContents.send('open-file');
-              }
+              click: () => openFile(),
             },
             {
                 label: isWindows ? 'Exit' : 'Quit',
@@ -108,34 +104,34 @@ function createWindow(): void {
   
   Menu.setApplicationMenu(menu)
 
-  ipcMain.on('save-dialog', (event, content) => {
-    dialog.showSaveDialog(mainWindow, {
-      title: 'Save text file',
-      defaultPath: path.join(app.getPath('documents'), 'untitled.txt'),
-      filters: [{ name: 'Text Files', extensions: ['txt'] }]
-    }).then(result => {
-      if (!result.canceled) {
-        fs.writeFileSync(result.filePath, content);
-      }
-    }).catch(err => {
-      console.log(err);
-    });
-  });
+  // ipcMain.on('save-dialog', (event, content) => {
+  //   dialog.showSaveDialog(mainWindow, {
+  //     title: 'Save text file',
+  //     defaultPath: path.join(app.getPath('documents'), 'untitled.txt'),
+  //     filters: [{ name: 'Text Files', extensions: ['txt'] }]
+  //   }).then(result => {
+  //     if (!result.canceled) {
+  //       fs.writeFileSync(result.filePath, content);
+  //     }
+  //   }).catch(err => {
+  //     console.log(err);
+  //   });
+  // });
 
-  ipcMain.on('open-dialog', (event) => {
-    dialog.showOpenDialog(mainWindow, {
-      title: 'Open text file',
-      properties: ['openFile'],
-      filters: [{ name: 'Text Files', extensions: ['txt'] }]
-    }).then(result => {
-      if (!result.canceled) {
-        const content = fs.readFileSync(result.filePaths[0], 'utf8');
-        mainWindow.webContents.send('file-opened', content);
-      }
-    }).catch(err => {
-      console.log(err);
-    });
-  });
+  // ipcMain.on('open-dialog', (event) => {
+  //   dialog.showOpenDialog(mainWindow, {
+  //     title: 'Open text file',
+  //     properties: ['openFile'],
+  //     filters: [{ name: 'Text Files', extensions: ['txt'] }]
+  //   }).then(result => {
+  //     if (!result.canceled) {
+  //       const content = fs.readFileSync(result.filePaths[0], 'utf8');
+  //       mainWindow.webContents.send('file-opened', content);
+  //     }
+  //   }).catch(err => {
+  //     console.log(err);
+  //   });
+  // });
 
   ipcMain.on('find', (event, searchTerm) => {
     mainWindow.webContents.findInPage(searchTerm);
@@ -145,6 +141,83 @@ function createWindow(): void {
     mainWindow.webContents.stopFindInPage('clearSelection');
   });
 }
+
+function openFile() {
+  dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: [{ name: 'Text Files', extensions: ['txt'] }],
+  }).then(result => {
+    if (!result.canceled) {
+      currentFilePath = result.filePaths[0];
+      fs.readFile(currentFilePath, 'utf-8', (err, data) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        // Send the file content to the renderer process
+        mainWindow.webContents.send('file-opened', data);
+      });
+    }
+  });
+}
+
+function saveFile() {
+  // Check if a file is currently opened
+  if (currentFilePath) {
+    mainWindow.webContents.send('get-content'); // Ask renderer for the content
+  } else {
+    dialog.showSaveDialog(mainWindow, {
+      filters: [{ name: 'Text Files', extensions: ['txt'] }],
+    }).then(result => {
+      if (!result.canceled && result.filePath) {
+        currentFilePath = result.filePath;
+        mainWindow.webContents.send('get-content'); // Ask renderer for the content
+      }
+    });
+  }
+}
+
+ipcMain.on('send-content', (event, content) => {
+  if (currentFilePath) {
+    fs.writeFile(currentFilePath, content, (err) => {
+      if (err) console.log(err);
+      else console.log('File saved successfully!');
+    });
+  }
+});
+
+ipcMain.on('request-save-file', (event) => {
+  if (currentFilePath) {
+    mainWindow.webContents.send('request-content');
+  } else {
+    dialog.showSaveDialog(mainWindow, {
+      // Your save dialog options
+    }).then((result) => {
+      if (!result.canceled && result.filePath) {
+        currentFilePath = result.filePath;
+        mainWindow.webContents.send('request-content');
+      }
+    });
+  }
+});
+
+ipcMain.on('request-open-file', (event) => {
+  dialog.showOpenDialog(mainWindow, {
+    // Your open dialog options
+  }).then((result) => {
+    if (!result.canceled) {
+      currentFilePath = result.filePaths[0];
+      const content = fs.readFileSync(currentFilePath, 'utf8');
+      mainWindow.webContents.send('file-opened', content);
+    }
+  });
+});
+
+ipcMain.on('send-content', (event, content) => {
+  if (currentFilePath) {
+    fs.writeFileSync(currentFilePath, content);
+  }
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

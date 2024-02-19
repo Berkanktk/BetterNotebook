@@ -34,18 +34,30 @@
   const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
   const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
 
-  window.electron.ipcRenderer.on('save-file', () => {
-    const contentToSave = text 
-    window.electron.ipcRenderer.send('save-dialog', contentToSave)
+  // Adjusted to use the correct API namespace and method names
+  const saveFile = () => {
+    // Trigger save operation in the main process
+    window.electronAPI.send('save-dialog', text)
+  }
+
+  const openFile = () => {
+    // Trigger open operation in the main process
+    window.electronAPI.send('open-dialog')
+  }
+
+  window.electronAPI.receive('file-opened', (content) => {
+    text = content
   })
 
-  window.electron.ipcRenderer.on('open-file', () => {
-    window.electron.ipcRenderer.send('open-dialog')
+  // When main process requests content, send the current text back
+  window.electronAPI.receive('content-requested', () => {
+    window.electronAPI.send('send-content', text)
   })
 
-  window.electron.ipcRenderer.on('file-opened', (event, content) => {
-    text = content 
-  })
+    // In your renderer process where you have access to `api`
+  window.electronAPI.receive('request-content', () => {
+    window.electronAPI.sendContent(text); 
+  });
 
   $: frequencyData = calculateWordFrequency(text, frequencyData)
   $: readingTime = text ? Math.ceil(text.split(' ').length / wordsPerMinute) : 0
