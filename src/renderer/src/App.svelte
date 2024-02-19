@@ -1,7 +1,8 @@
 <script lang="ts">
   import { calcWordFreq, replaceDate, evalMath, handleLists, setTextSize, setLineHeight, applyCase } from './components/lib/Helpers'
   import { sizeOptions, lineHeightOptions, caseOptions, wordsPerMinute, speechPerMinute, textFormatting } from './components/lib/Constants'
-
+  
+  import type { Theme } from './Types'
   import Frequency from './components/Frequency.svelte'
   import Select from './components/Select.svelte'
   import ButtonImage from './components/ButtonImage.svelte'
@@ -17,8 +18,7 @@
   let searchActive: boolean = false
   let frequencyData = {}
   let frequencyActive: boolean = false
-  let theme: string = 'dark'
-
+  let theme: Theme = 'dark'
 
   function toggleTheme() {
     theme = theme === 'light' ? 'dark' : 'light'

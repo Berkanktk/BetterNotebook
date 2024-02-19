@@ -1,7 +1,9 @@
+import type { Options, TextFormatting } from "../../Types";
+
 export const wordsPerMinute = 200
 export const speechPerMinute = 125
 
-export let textFormatting = {
+export let textFormatting: TextFormatting = {
     selectedSize: 'medium',
     textSize: '16px',
     selectedLineHeight: 'medium',
@@ -9,7 +11,7 @@ export let textFormatting = {
     selectedCase: 'none',
 };
 
-export const sizeOptions = [
+export const sizeOptions: Options[] = [
     { value: 'extra-small', label: '12px' },
     { value: 'small', label: '14px' },
     { value: 'medium', label: '16px' },
@@ -17,7 +19,7 @@ export const sizeOptions = [
     { value: 'extra-large', label: '20px' }
 ]
 
-export const lineHeightOptions = [
+export const lineHeightOptions: Options[] = [
     { value: 'extra-small', label: '1.0' },
     { value: 'small', label: '1.25' },
     { value: 'medium', label: '1.35' },
@@ -25,7 +27,7 @@ export const lineHeightOptions = [
     { value: 'extra-large', label: '1.75' }
 ]
 
-export const caseOptions = [
+export const caseOptions: Options[] = [
     { value: 'uppercase', label: 'UPPERCASE' },
     { value: 'lowercase', label: 'lowercase' },
     { value: 'capitalize', label: 'Capitalize' },
