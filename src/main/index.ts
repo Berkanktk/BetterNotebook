@@ -17,6 +17,7 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: false,
+    icon: 'icon.ico',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -113,7 +114,7 @@ function createWindow(): void {
 }
 
 // When opening a file, store its path
-ipcMain.on('open-dialog', (event) => {
+ipcMain.on('open-dialog', (_event) => {
   dialog.showOpenDialog(mainWindow, {
     title: 'Open text file',
     properties: ['openFile'],
@@ -132,7 +133,7 @@ ipcMain.on('open-dialog', (event) => {
 });
 
 // Modify the save-dialog handler
-ipcMain.on('save-dialog', (event, content) => {
+ipcMain.on('save-dialog', (_event, content) => {
   if (lastOpenedFilePath) {
     fs.writeFileSync(lastOpenedFilePath, content);
   } else {
