@@ -1,16 +1,19 @@
 import { app, shell, BrowserWindow, Menu, ipcMain, dialog } from 'electron'
 import { join } from 'path'
+import { basename } from 'path'
+import path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 const fs = require('fs');
-const path = require('path');
 
 let isWindows = process.platform === 'win32'
 let mainWindow: BrowserWindow;
+let lastOpenedFilePath = ''; 
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
+    title: 'BetterNotebook',
     width: 1055,
     height: 670,
     show: false,
@@ -108,43 +111,50 @@ function createWindow(): void {
   
   Menu.setApplicationMenu(menu)
 
-  ipcMain.on('save-dialog', (event, content) => {
+}
+
+// When opening a file, store its path
+ipcMain.on('open-dialog', (event) => {
+  dialog.showOpenDialog(mainWindow, {
+    title: 'Open text file',
+    properties: ['openFile'],
+    filters: [{ name: 'Text Files', extensions: ['txt'] }]
+  }).then(result => {
+    if (!result.canceled) {
+      const content = fs.readFileSync(result.filePaths[0], 'utf8');
+      mainWindow.webContents.send('file-opened', content);
+      lastOpenedFilePath = result.filePaths[0]; 
+      const filename = basename(lastOpenedFilePath);
+      mainWindow.setTitle(filename + " - BetterNotebook");
+    }
+  }).catch(err => {
+    console.log(err);
+  });
+});
+
+// Modify the save-dialog handler
+ipcMain.on('save-dialog', (event, content) => {
+  if (lastOpenedFilePath) {
+    fs.writeFileSync(lastOpenedFilePath, content);
+  } else {
+    // Show save dialog if there is no file path
     dialog.showSaveDialog(mainWindow, {
       title: 'Save text file',
       defaultPath: path.join(app.getPath('documents'), 'untitled.txt'),
       filters: [{ name: 'Text Files', extensions: ['txt'] }]
     }).then(result => {
-      if (!result.canceled) {
+      if (!result.canceled && result.filePath) {
         fs.writeFileSync(result.filePath, content);
+        lastOpenedFilePath = result.filePath;
+        const filename = basename(lastOpenedFilePath); 
+        mainWindow.setTitle(filename + " - YourAppName");
       }
     }).catch(err => {
       console.log(err);
     });
-  });
+  }
+});
 
-  ipcMain.on('open-dialog', (event) => {
-    dialog.showOpenDialog(mainWindow, {
-      title: 'Open text file',
-      properties: ['openFile'],
-      filters: [{ name: 'Text Files', extensions: ['txt'] }]
-    }).then(result => {
-      if (!result.canceled) {
-        const content = fs.readFileSync(result.filePaths[0], 'utf8');
-        mainWindow.webContents.send('file-opened', content);
-      }
-    }).catch(err => {
-      console.log(err);
-    });
-  });
-
-  ipcMain.on('find', (event, searchTerm) => {
-    mainWindow.webContents.findInPage(searchTerm);
-  });
-
-  ipcMain.on('clear-find', () => {
-    mainWindow.webContents.stopFindInPage('clearSelection');
-  });
-}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
