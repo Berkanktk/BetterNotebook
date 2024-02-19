@@ -1,23 +1,11 @@
 <script lang="ts">
-  import {
-    capitalizeText,
-    sentenceCase,
-    invertCase,
-    randomCase,
-    reverseText,
-    calculateWordFrequency
-  } from './components/Helpers'
+  import { calcWordFreq, replaceDate, evalMath, handleLists, setTextSize, setLineHeight, applyCase } from './components/lib/Helpers'
+  import { sizeOptions, lineHeightOptions, caseOptions, wordsPerMinute, speechPerMinute, textFormatting } from './components/lib/Constants'
+
   import Frequency from './components/Frequency.svelte'
   import Select from './components/Select.svelte'
   import ButtonImage from './components/ButtonImage.svelte'
-
-  const wordsPerMinute = 200
-  const speechPerMinute = 125
-  import moonLogo from './assets/moon.svg'
-  import sunLogo from './assets/sun.svg'
-  import searchIcon from './assets/search.svg'
-  import trashIcon from './assets/trash.svg'
-  import frequencyIcon from './assets/frequency.svg'
+  import { logos } from './components/lib/Icons'
 
   const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
   const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
@@ -26,147 +14,26 @@
   let searchQuery: string = ''
   let replaceQuery: string = ''
   let showSearchAndReplace: boolean = false
-  let selectedSize: string = 'medium'
-  let textSize: string = '16px'
-  let selectedLineHeight: string = 'medium'
-  let lineHeight: string = '1.35'
-  let selectedCase: string = 'none'
   let searchActive: boolean = false
   let frequencyData = {}
   let frequencyActive: boolean = false
   let theme: string = 'dark'
 
-  let sizeOptions = [
-    { value: 'extra-small', label: '12px' },
-    { value: 'small', label: '14px' },
-    { value: 'medium', label: '16px' },
-    { value: 'large', label: '18px' },
-    { value: 'extra-large', label: '20px' }
-  ]
-
-  let selectedLineHeightOptions = [
-    { value: 'extra-small', label: '1.0' },
-    { value: 'small', label: '1.25' },
-    { value: 'medium', label: '1.35' },
-    { value: 'large', label: '1.5' },
-    { value: 'extra-large', label: '1.75' }
-  ]
-
-  let selectedCaseOptions = [
-    { value: 'uppercase', label: 'UPPERCASE' },
-    { value: 'lowercase', label: 'lowercase' },
-    { value: 'capitalize', label: 'Capitalize' },
-    { value: 'sentencecase', label: 'Sentence' },
-    { value: 'inversecase', label: 'iNVERSE' },
-    { value: 'alternatingcase', label: 'AlTeRnAtInG' },
-    { value: 'reverse', label: 'esreveR' }
-  ]
-
-  window.electron.ipcRenderer.on('save-file', () => {
-    const contentToSave = text
-    window.electron.ipcRenderer.send('save-dialog', contentToSave)
-  })
-
-  window.electron.ipcRenderer.on('open-file', () => {
-    window.electron.ipcRenderer.send('open-dialog')
-  })
-
-  window.electron.ipcRenderer.on('file-opened', (event, content) => {
-    text = content
-  })
-
-  $: frequencyData = calculateWordFrequency(text, frequencyData)
-  $: readingTime = text ? Math.ceil(text.split(' ').length / wordsPerMinute) : 0
-  $: speechTime = text ? Math.ceil(text.split(' ').length / speechPerMinute) : 0
-  $: averageWordLength = text
-    ? (text.replace(/ /g, '').length / text.split(' ').length).toFixed(2)
-    : (0.0).toFixed(2)
-  $: paragraphs = text.split('\n\n').filter((para) => para.trim() !== '').length
-  $: sentences = text.split(/\.|\!|\?/).filter((sentence) => sentence.trim() !== '').length
 
   function toggleTheme() {
     theme = theme === 'light' ? 'dark' : 'light'
   }
 
   function handleInput() {
-    const math = /\$(.+)=/
-    const matchMath = text.match(math)
-    selectedCase = 'none'
+    text = handleLists(text)
+    text = replaceDate(text)
+    text = evalMath(text)
+  }
 
-    // Handle bullet points and numbered lists
-    const lines = text.split('\n')
-    const newTextLines = lines.map((line, index, arr) => {
-      // Handle bullet points triggered by "* "
-      if (line.endsWith('* ')) {
-        if (line.trim().length > 1) {
-          return line.replace(/\* $/, '') + '\n• '
-        } else {
-          return line.replace(/\* $/, '• ')
-        }
-      }
-
-      // Handle numbered lists triggered by "1. "
-      else if (/^\d+\. $/.test(line)) {
-        if (index > 0 && /^\d+\./.test(arr[index - 1].trim())) {
-          const prevNum = parseInt(arr[index - 1].match(/^(\d+)\./)[1])
-          return line.replace(/^\d+\. $/, `${prevNum + 1}. `)
-        } else {
-          return '1. '
-        }
-      }
-      return line
-    })
-    text = newTextLines.join('\n')
-
-    if (text.includes('$now')) {
-      text = text.replace(
-        '$now',
-        new Date()
-          .toLocaleString('en-GB', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-          })
-          .replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3/$1/$2')
-      )
-    } else if (text.includes('$date')) {
-      text = text.replace(
-        '$date',
-        new Date()
-          .toLocaleDateString('en-GB', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-          })
-          .replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3/$1/$2')
-      )
-    } else if (text.includes('$time')) {
-      text = text.replace(
-        '$time',
-        new Date().toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false
-        })
-      )
-    } else if (text.includes('$day')) {
-      text = text.replace('$day', new Date().toLocaleDateString('en-GB', { weekday: 'long' }))
-    }
-
-    if (matchMath) {
-      let expression = matchMath[1].trim()
-      try {
-        let result = eval(expression)
-        text = text.replace(math, `${result.toFixed(2)} `)
-      } catch (error) {
-        console.error('Error evaluating expression:', error)
-      }
-    }
+  function handleSettings() {
+    textFormatting.textSize = setTextSize(textFormatting.selectedSize, textFormatting.textSize)
+    textFormatting.lineHeight = setLineHeight(textFormatting.selectedLineHeight, textFormatting.lineHeight)
+    text = applyCase(textFormatting.selectedCase, text)
   }
 
   function performSearchAndReplace() {
@@ -177,52 +44,6 @@
     } else if (text && searchQuery) {
       ipcFind()
       searchActive = true
-    }
-  }
-
-  function handleTextSize() {
-    if (selectedSize === 'extra-small') {
-      textSize = '12px'
-    } else if (selectedSize === 'small') {
-      textSize = '14px'
-    } else if (selectedSize === 'medium') {
-      textSize = '16px'
-    } else if (selectedSize === 'large') {
-      textSize = '18px'
-    } else if (selectedSize === 'extra-large') {
-      textSize = '20px'
-    }
-  }
-
-  function handleLineHeight() {
-    if (selectedLineHeight === 'extra-small') {
-      lineHeight = '1.0'
-    } else if (selectedLineHeight === 'small') {
-      lineHeight = '1.25'
-    } else if (selectedLineHeight === 'medium') {
-      lineHeight = '1.35'
-    } else if (selectedLineHeight === 'large') {
-      lineHeight = '1.5'
-    } else if (selectedLineHeight === 'extra-large') {
-      lineHeight = '1.75'
-    }
-  }
-
-  function handleCase() {
-    if (selectedCase === 'uppercase') {
-      text = text.toUpperCase()
-    } else if (selectedCase === 'lowercase') {
-      text = text.toLowerCase()
-    } else if (selectedCase === 'capitalize') {
-      text = capitalizeText(text)
-    } else if (selectedCase === 'sentencecase') {
-      text = sentenceCase(text)
-    } else if (selectedCase === 'inversecase') {
-      text = invertCase(text)
-    } else if (selectedCase === 'alternatingcase') {
-      text = randomCase(text)
-    } else if (selectedCase === 'reverse') {
-      text = reverseText(text)
     }
   }
 
@@ -283,6 +104,28 @@
     }
   }
 
+  window.electron.ipcRenderer.on('save-file', () => {
+    const contentToSave = text
+    window.electron.ipcRenderer.send('save-dialog', contentToSave)
+  })
+
+  window.electron.ipcRenderer.on('open-file', () => {
+    window.electron.ipcRenderer.send('open-dialog')
+  })
+
+  window.electron.ipcRenderer.on('file-opened', (_event, content) => {
+    text = content
+  })
+
+  // https://github.com/Berkanktk/CharacterAnalyzer/
+  $: frequencyData = calcWordFreq(text, frequencyData)
+  $: readingTime = text ? Math.ceil(text.split(' ').length / wordsPerMinute) : 0
+  $: speechTime = text ? Math.ceil(text.split(' ').length / speechPerMinute) : 0
+  $: averageWordLength = text
+    ? (text.replace(/ /g, '').length / text.split(' ').length).toFixed(2)
+    : (0.0).toFixed(2)
+  $: paragraphs = text.split('\n\n').filter((para) => para.trim() !== '').length
+  $: sentences = text.split(/\.|\!|\?/).filter((sentence) => sentence.trim() !== '').length
   $: if (searchQuery === '') {
     searchQuery = ''
     ipcClear()
@@ -292,9 +135,9 @@
 <div class="notebook" id="theme" class:dark={theme === 'dark'} class:light={theme === 'light'}>
   <div class="features">
     <div class="feature-list">
-      <Select bind:value={selectedSize} onChange={handleTextSize} options={sizeOptions}/>
-      <Select bind:value={selectedLineHeight} onChange={handleLineHeight} options={selectedLineHeightOptions}/>
-      <Select bind:value={selectedCase} onChange={handleCase} options={selectedCaseOptions}/>
+      <Select bind:value={textFormatting.selectedSize} onChange={handleSettings} options={sizeOptions}/>
+      <Select bind:value={textFormatting.selectedLineHeight} onChange={handleSettings} options={lineHeightOptions}/>
+      <Select bind:value={textFormatting.selectedCase} onChange={handleSettings} options={caseOptions}/>
 
       <div class="vertical-sm">|</div>
 
@@ -305,23 +148,23 @@
 
       {#if !searchActive}
         {#if replaceQuery != ''}
-          <ButtonImage src={searchIcon} alt="replace" text="Replace" onClick={performSearchAndReplace} />
+          <ButtonImage src={logos.search} alt="replace" text="Replace" onClick={performSearchAndReplace} />
         {:else}
-          <ButtonImage src={searchIcon} alt="search" text="Search" onClick={performSearchAndReplace} />
+          <ButtonImage src={logos.search} alt="search" text="Search" onClick={performSearchAndReplace} />
         {/if}
       {:else}
-        <ButtonImage src={trashIcon} alt="trash" text="Clear" onClick={clearSearch} />
+        <ButtonImage src={logos.trash} alt="trash" text="Clear" onClick={clearSearch} />
       {/if}
 
       <div class="vertical-sm">|</div>
 
-      <ButtonImage src={frequencyIcon} alt="frequency" text="Frequency" onClick={handleFrequency} />
+      <ButtonImage src={logos.frequency} alt="frequency" text="Frequency" onClick={handleFrequency} />
     </div>
 
     <div class="feature-list">
       <button class="btn" on:click={toggleTheme}>
         <img
-          src={theme === 'light' ? moonLogo : sunLogo}
+          src={theme === 'light' ? logos.moon : logos.sun}
           alt={theme === 'light' ? 'sun' : 'moon'}
         />
       </button>
@@ -335,7 +178,7 @@
       on:input={handleInput}
       on:keydown={handleKeyDown}
       id="inputText"
-      style={`font-size: ${textSize}; line-height: ${lineHeight};`}
+      style={`font-size: ${textFormatting.textSize}; line-height: ${textFormatting.lineHeight};`}
     />
 
     {#if frequencyActive}

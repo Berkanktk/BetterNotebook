@@ -4,8 +4,7 @@ import { basename } from 'path'
 import path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-
-const fs = require('fs');
+import fs from 'fs'
 
 let isWindows = process.platform === 'win32'
 let mainWindow: BrowserWindow;
@@ -140,14 +139,14 @@ ipcMain.on('save-dialog', (event, content) => {
     // Show save dialog if there is no file path
     dialog.showSaveDialog(mainWindow, {
       title: 'Save text file',
-      defaultPath: path.join(app.getPath('documents'), 'untitled.txt'),
+      defaultPath: path.join(app.getPath('desktop'), 'untitled.txt'),
       filters: [{ name: 'Text Files', extensions: ['txt'] }]
     }).then(result => {
       if (!result.canceled && result.filePath) {
         fs.writeFileSync(result.filePath, content);
         lastOpenedFilePath = result.filePath;
         const filename = basename(lastOpenedFilePath); 
-        mainWindow.setTitle(filename + " - YourAppName");
+        mainWindow.setTitle(filename + " - BetterNotebook");
       }
     }).catch(err => {
       console.log(err);
