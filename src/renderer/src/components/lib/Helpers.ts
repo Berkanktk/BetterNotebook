@@ -1,3 +1,5 @@
+import * as math from 'mathjs';
+
 export function capitalizeText(text: string): string {
     return text.replace(/\b\w/g, (char) => char.toUpperCase());
 }
@@ -59,14 +61,15 @@ export function calcWordFreq(inputText: string, frequencyData: Record<string, nu
     return frequencyData;
 }
 
-export function evalMath(text: string): string {
+export function evalMath(text) {
     const mathRegex = /\$(.+)=/;
     const match = text.match(mathRegex);
     if (match) {
         const expression = match[1].trim();
         try {
-            const result = eval(expression);
-            return text.replace(mathRegex, `${result.toFixed(2)} `);
+            const result = math.evaluate(expression);
+            const formattedResult = result % 1 === 0 ? result.toString() : result.toFixed(2);
+            return text.replace(mathRegex, `${formattedResult} `);
         } catch (error) {
             console.error('Error evaluating expression:', error);
             return text;
