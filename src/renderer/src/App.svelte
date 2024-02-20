@@ -19,6 +19,7 @@
   let frequencyData = {}
   let frequencyActive: boolean = false
   let theme: Theme = 'dark'
+  let foundInstances: number = 0
 
   function toggleTheme() {
     theme = theme === 'light' ? 'dark' : 'light'
@@ -37,6 +38,14 @@
   }
 
   function performSearchAndReplace() {
+    if (!text.includes(searchQuery)) {
+      searchQuery = ''
+      replaceQuery = ''
+      return
+    }
+
+    foundInstances = text.match(new RegExp(searchQuery, 'gi'))?.length || 0
+
     if (text && searchQuery && replaceQuery) {
       text = text.replace(new RegExp(searchQuery, 'gi'), replaceQuery)
       searchQuery = ''
@@ -140,6 +149,7 @@
   $: if (searchQuery === '') {
     searchQuery = ''
     ipcClear()
+    searchActive = false
   }
 </script>
 
@@ -192,6 +202,13 @@
       style={`font-size: ${textFormatting.textSize}; line-height: ${textFormatting.lineHeight};`}
     />
 
+    {#if searchActive}
+  <div class="search-info">
+    <span class="search-box">Found Instances: {foundInstances}</span>
+  </div>
+{/if}
+
+
     {#if frequencyActive}
       <div class="vertical"></div>
       <div class="horizontal"></div>
@@ -209,6 +226,12 @@
     <span>ST: {speechTime} min</span>
   </div>
 </div>
+
+<!-- {#if searchActive}
+  <div class="search-info">
+    <span class="search-box">Found Instances: {foundInstances}</span>
+  </div>
+{/if} -->
 
 <style>
   :global(::-webkit-scrollbar) {
