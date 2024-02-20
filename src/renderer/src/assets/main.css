@@ -214,4 +214,12 @@ input[type="text"] {
   .feature-list {
     display: none;
   }
+
+  .frequency-view {
+    display: none;
+  }
+
+  .vertical {
+    display: none;
+  }
 }
