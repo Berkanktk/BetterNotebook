@@ -73,12 +73,16 @@
     const cursorPosition = textarea.selectionStart;
 
     if (event.key === 'Tab') {
-        event.preventDefault(); // Prevent the default tab action
+        event.preventDefault(); 
         const beforeTab = text.substring(0, cursorPosition);
         const afterTab = text.substring(cursorPosition);
         const tabCharacter = "\t";
         textarea.value = beforeTab + tabCharacter + afterTab;
         textarea.selectionStart = textarea.selectionEnd = cursorPosition + tabCharacter.length;
+    } else if (event.key === 'F5'){
+      event.preventDefault();
+      let now = replaceDate('$now');
+      textarea.value = text + now;
     } else if (event.key === 'Enter') {
         const textarea = event.target as HTMLTextAreaElement
         let text = textarea.value
