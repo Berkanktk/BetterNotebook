@@ -15,6 +15,8 @@ function createWindow(): void {
     title: 'BetterNotebook',
     width: 1055,
     height: 670,
+    minWidth: 400,
+    minHeight: 400,
     show: false,
     autoHideMenuBar: false,
     icon: 'icon.ico',

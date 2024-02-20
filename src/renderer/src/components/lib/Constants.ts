@@ -28,6 +28,7 @@ export const lineHeightOptions: Options[] = [
 ]
 
 export const caseOptions: Options[] = [
+    { value: 'none', label: 'None' },
     { value: 'uppercase', label: 'UPPERCASE' },
     { value: 'lowercase', label: 'lowercase' },
     { value: 'capitalize', label: 'Capitalize' },

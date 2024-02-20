@@ -159,10 +159,10 @@
       <div class="vertical-sm">|</div>
 
       <ButtonImage src={logos.frequency} alt="frequency" text="Frequency" onClick={handleFrequency} />
-    </div>
 
-    <div class="feature-list">
-      <button class="btn" on:click={toggleTheme}>
+      <div class="vertical-sm">|</div>
+
+      <button class="btn theme" on:click={toggleTheme}>
         <img
           src={theme === 'light' ? logos.moon : logos.sun}
           alt={theme === 'light' ? 'sun' : 'moon'}

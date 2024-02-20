@@ -69,6 +69,7 @@ textarea {
   margin: 5px 0;
   gap: 10px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .feature-list:first-child {
@@ -197,14 +198,20 @@ input[type="text"] {
   overflow-y: inherit;
 }
 
-@media (max-width: 720px) {
-  
+.theme {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
-@media (max-width: 620px) {
-  
+@media (max-width: 1000px) {
+  .theme {
+    position: relative;
+  }
 }
 
-@media (max-width: 350px) {
-  
+@media (max-width: 530px) {
+  .feature-list {
+    display: none;
+  }
 }
