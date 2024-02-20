@@ -208,6 +208,10 @@ input[type="text"] {
   display: none;
 }
 
+.frequency-view {
+  width: 25% !important;
+}
+
 @media (max-width: 1000px) {
   .theme {
     position: relative;
