@@ -132,6 +132,10 @@ function createWindow(): void {
 
 }
 
+ipcMain.on('find', (_event, searchTerm) => {
+  mainWindow.webContents.findInPage(searchTerm);
+});
+
 // When opening a file, store its path
 ipcMain.on('open-dialog', (_event) => {
   dialog.showOpenDialog(mainWindow, {
