@@ -44,10 +44,10 @@
       return
     }
 
-    foundInstances = text.match(new RegExp(searchQuery, 'gi'))?.length || 0
+    foundInstances = text.match(new RegExp(searchQuery, 'g'))?.length || 0
 
     if (text && searchQuery && replaceQuery) {
-      text = text.replace(new RegExp(searchQuery, 'gi'), replaceQuery)
+      text = text.replace(new RegExp(searchQuery, 'g'), replaceQuery)
       searchQuery = ''
       replaceQuery = ''
     } else if (text && searchQuery) {

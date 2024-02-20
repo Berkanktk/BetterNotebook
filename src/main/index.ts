@@ -133,7 +133,7 @@ function createWindow(): void {
 }
 
 ipcMain.on('find', (_event, searchTerm) => {
-  mainWindow.webContents.findInPage(searchTerm);
+  mainWindow.webContents.findInPage(searchTerm, { matchCase: true}); 
 });
 
 ipcMain.on('clear-find', () => {
