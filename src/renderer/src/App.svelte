@@ -85,7 +85,7 @@
       // Handle bullet points continuation
       else if (lineText.trim().startsWith('•')) {
         event.preventDefault()
-        text = insertText(beforeCursor, '\n• ', afterCursor, 1)
+        text = insertText(beforeCursor, '\n  • ', afterCursor, 1)
       }
 
       // Handling for numbered lists

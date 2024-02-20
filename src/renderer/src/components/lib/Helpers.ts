@@ -133,7 +133,7 @@ export function handleLists(text: string): string {
     const lines = text.split('\n');
     const newTextLines = lines.map((line, index, arr) => {
         if (line.endsWith('* ')) {
-            return line.trim().length > 1 ? line.replace(/\* $/, '') + '\n• ' : line.replace(/\* $/, '• ');
+            return line.trim().length > 1 ? line.replace(/\* $/, '') + '\n  • ' : line.replace(/\* $/, '  • ');
         } else if (/^\d+\. $/.test(line)) {
             const prevNum = index > 0 && /^\d+\./.test(arr[index - 1].trim()) ? parseInt(arr[index - 1].match(/^(\d+)\./)[1]) : 0;
             return prevNum > 0 ? line.replace(/^\d+\. $/, `${prevNum + 1}. `) : '1. ';
