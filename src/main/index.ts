@@ -136,6 +136,10 @@ ipcMain.on('find', (_event, searchTerm) => {
   mainWindow.webContents.findInPage(searchTerm);
 });
 
+ipcMain.on('clear-find', () => {
+  mainWindow.webContents.stopFindInPage('clearSelection');
+});
+
 // When opening a file, store its path
 ipcMain.on('open-dialog', (_event) => {
   dialog.showOpenDialog(mainWindow, {
