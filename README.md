@@ -3,7 +3,7 @@ Whether you're writing down quick notes, drafting extensive documents, or perfor
 
 > Made by an extensive NotePad user who wanted to create a better experience for himself and others who share the same sentiment through fulfilling some of the limitations of Notepad.
 
-[Screenshots](./resources/screenshots/README.md) | [Features](#features) | [Getting Started](#getting-started) | [Contributing](#contributing) | [License](#license)
+[Screenshots](./resources/screenshots/Readme.md) | [Features](#features) | [Getting Started](#getting-started) | [Contributing](#contributing) | [License](#license)
 ## Introduction
 
 BetterNotebook is an [Electron](https://www.electronjs.org/) application crafted with [Svelte](https://svelte.dev/) and [TypeScript](https://www.typescriptlang.org/), offering a modern and enhanced notebook experience that bridges the gap left by traditional text editors like Windows NotePad. Designed for efficiency and ease of use, it combines the quick and minimalistic appeal of NotePad with a suite of powerful features, thus solving many of its limitations. BetterNotebook integrates these capabilities into a sleek and responsive user interface, accommodating to a wide range of text editing and note-taking needs without sacrificing speed or simplicity.
