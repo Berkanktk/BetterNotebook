@@ -59,41 +59,52 @@
   }
 
   function handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
-      const textarea = event.target as HTMLTextAreaElement
-      let text = textarea.value
-      const cursorPosition = textarea.selectionStart
-      const lineStart = text.lastIndexOf('\n', cursorPosition - 1) + 1
-      const lineText = text.substring(lineStart, cursorPosition)
+    const textarea = event.target as HTMLTextAreaElement;
+    let text = textarea.value;
+    const cursorPosition = textarea.selectionStart;
 
-      const insertText = (before, insert, after, offset = 0) => {
-        const newText = `${before}${insert}${after}`
-        textarea.value = newText
-        const newPosition = before.length + insert.length + offset
-        textarea.setSelectionRange(newPosition, newPosition)
-        return newText
-      }
+    if (event.key === 'Tab') {
+        event.preventDefault(); // Prevent the default tab action
+        const beforeTab = text.substring(0, cursorPosition);
+        const afterTab = text.substring(cursorPosition);
+        const tabCharacter = "\t";
+        textarea.value = beforeTab + tabCharacter + afterTab;
+        textarea.selectionStart = textarea.selectionEnd = cursorPosition + tabCharacter.length;
+    } else if (event.key === 'Enter') {
+        const textarea = event.target as HTMLTextAreaElement
+        let text = textarea.value
+        const cursorPosition = textarea.selectionStart
+        const lineStart = text.lastIndexOf('\n', cursorPosition - 1) + 1
+        const lineText = text.substring(lineStart, cursorPosition)
 
-      const beforeCursor = text.substring(0, cursorPosition)
-      const afterCursor = text.substring(cursorPosition)
+        const insertText = (before, insert, after, offset = 0) => {
+          const newText = `${before}${insert}${after}`
+          textarea.value = newText
+          const newPosition = before.length + insert.length + offset
+          textarea.setSelectionRange(newPosition, newPosition)
+          return newText
+        }
 
-      // Handle empty bullet points
-      if (lineText.trim() === '•') {
-        event.preventDefault()
-        text = insertText(text.substring(0, lineStart), '', afterCursor)
-      }
-      // Handle bullet points continuation
-      else if (lineText.trim().startsWith('•')) {
-        event.preventDefault()
-        text = insertText(beforeCursor, '\n  • ', afterCursor, 1)
-      }
+        const beforeCursor = text.substring(0, cursorPosition)
+        const afterCursor = text.substring(cursorPosition)
 
-      // Handling for numbered lists
-      const numberMatch = lineText.match(/^(\d+)\.\s*(.*)$/)
-      if (numberMatch) {
-        event.preventDefault()
-        const currentNumber = parseInt(numberMatch[1])
-        const restOfLineText = numberMatch[2]
+        // Handle empty bullet points
+        if (lineText.trim() === '•') {
+          event.preventDefault()
+          text = insertText(text.substring(0, lineStart), '', afterCursor)
+        }
+        // Handle bullet points continuation
+        else if (lineText.trim().startsWith('•')) {
+          event.preventDefault()
+          text = insertText(beforeCursor, '\n  • ', afterCursor, 1)
+        }
+
+        // Handling for numbered lists
+        const numberMatch = lineText.match(/^(\d+)\.\s*(.*)$/)
+        if (numberMatch) {
+          event.preventDefault()
+          const currentNumber = parseInt(numberMatch[1])
+          const restOfLineText = numberMatch[2]
 
         if (restOfLineText === '') {
           text = insertText(text.substring(0, lineStart), '', afterCursor)
