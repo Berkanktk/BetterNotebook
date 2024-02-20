@@ -194,6 +194,7 @@
 
     {#if frequencyActive}
       <div class="vertical"></div>
+      <div class="horizontal"></div>
       <Frequency {frequencyData} />
     {/if}
   </div>

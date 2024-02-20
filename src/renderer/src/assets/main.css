@@ -204,9 +204,58 @@ input[type="text"] {
   right: 0;
 }
 
+.horizontal {
+  display: none;
+}
+
 @media (max-width: 1000px) {
   .theme {
     position: relative;
+  }
+
+  .frequency-view {
+    padding: 1rem;
+    width: 30% !important;
+    height: auto;
+    overflow: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .frequency-area {
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 14px;
+  overflow-y: inherit;
+  }
+
+  .frequency-view {
+    padding: 1rem;
+    width: 100% !important;
+    height: 50% !important;
+    overflow: auto;
+  }
+
+  .vertical {
+    display: none;
+  }
+
+  .horizontal {
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid #8080802f;
+    width: 80%;
+    margin: 0 auto;
   }
 }
 
