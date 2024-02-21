@@ -110,7 +110,7 @@ function createWindow(): void {
         {
           label: 'About',
           click: async () => {
-            const { response } = await dialog.showMessageBox({
+            await dialog.showMessageBox({
               type: 'info',
               buttons: ['OK'],
               title: 'About',
