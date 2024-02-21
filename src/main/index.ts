@@ -9,6 +9,7 @@ import fs from 'fs'
 let isWindows = process.platform === 'win32'
 let mainWindow: BrowserWindow;
 let lastOpenedFilePath = '';
+let filePathToOpen: any = null;
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -29,6 +30,26 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    // mainWindow.webContents.openDevTools()
+
+    if (process.argv.length >= 2) {
+      filePathToOpen = process.argv[1];
+    } else {
+      filePathToOpen = null;
+    }
+
+    if (filePathToOpen) {
+      fs.readFile(filePathToOpen, 'utf8', (err, content) => {
+        if (err) {
+          console.error('Failed to read file:', err);
+          return;
+        }
+        mainWindow.webContents.send('file-opened', content);
+        const filename = path.basename(filePathToOpen);
+        mainWindow.setTitle(`${filename} - BetterNotebook`);
+        filePathToOpen = null;
+      });
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -206,7 +227,7 @@ app.whenReady().then(() => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
+  })  
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

@@ -138,7 +138,8 @@
   })
 
   window.electron.ipcRenderer.on('file-opened', (_event, content) => {
-    text = content
+    const textarea = document.getElementById('inputText') as HTMLTextAreaElement
+    textarea.value = content
   })
 
   // https://github.com/Berkanktk/CharacterAnalyzer/
