@@ -1,9 +1,6 @@
 import { app, shell, BrowserWindow, Menu, ipcMain, dialog } from 'electron'
-import { join } from 'path'
-import { basename } from 'path'
-import path from 'path'
+import path, { join, basename } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
 import fs from 'fs'
 
 let isWindows = process.platform === 'win32'
@@ -21,7 +18,6 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: false,
     icon: 'icon.ico',
-    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -112,7 +108,7 @@ function createWindow(): void {
       label: 'Window',
       submenu: [
         { role: 'minimize' },
-        { role: 'zoom' },
+        // { role: 'zoom' },
         { role: 'close' }
       ]
     },
