@@ -39,15 +39,20 @@ function createWindow(): void {
     }
 
     if (filePathToOpen) {
-      fs.readFile(filePathToOpen, 'utf8', (err, content) => {
+      fs.lstat(filePathToOpen, (err, stats) => {
         if (err) {
-          console.error('Failed to read file:', err);
+          console.error('Failed to stat file:', err);
           return;
         }
-        mainWindow.webContents.send('file-opened', content);
-        const filename = path.basename(filePathToOpen);
-        mainWindow.setTitle(`${filename} - BetterNotebook`);
-        filePathToOpen = null;
+    
+        if (stats.isDirectory() !== true) {
+          const content = fs.readFileSync
+          (filePathToOpen, 'utf8');
+          mainWindow.webContents.send('file-opened', content);
+          lastOpenedFilePath = filePathToOpen;
+          const filename = basename(lastOpenedFilePath);
+          mainWindow.setTitle(filename + " - BetterNotebook");
+        }
       });
     }
   })
