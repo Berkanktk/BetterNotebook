@@ -166,6 +166,12 @@ ipcMain.on('clear-find', () => {
   mainWindow.webContents.stopFindInPage('clearSelection');
 });
 
+ipcMain.on('unsaved-changes', () => {
+  if (!mainWindow.getTitle().startsWith('*')) {
+    mainWindow.setTitle(`*${mainWindow.getTitle()}`);
+  }
+});
+
 // When opening a file, store its path
 ipcMain.on('open-dialog', (_event) => {
   dialog.showOpenDialog(mainWindow, {
@@ -187,8 +193,11 @@ ipcMain.on('open-dialog', (_event) => {
 
 // Modify the save-dialog handler
 ipcMain.on('save-dialog', (_event, content) => {
+  const currentTitle = mainWindow.getTitle();
+
   if (lastOpenedFilePath) {
     fs.writeFileSync(lastOpenedFilePath, content);
+    mainWindow.setTitle(currentTitle.replace(/^\*/, ''));
   } else {
     // Show save dialog if there is no file path
     dialog.showSaveDialog(mainWindow, {

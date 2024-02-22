@@ -10,6 +10,7 @@
 
   const ipcFind = (): void => window.electron.ipcRenderer.send('find', searchQuery)
   const ipcClear = (): void => window.electron.ipcRenderer.send('clear-find')
+  const ipcUnsavedChanges = (): void => window.electron.ipcRenderer.send('unsaved-changes')
 
   let text: string = ''
   let searchQuery: string = ''
@@ -26,6 +27,8 @@
   }
 
   function handleInput() {
+    ipcUnsavedChanges()
+
     text = handleLists(text)
     text = replaceDate(text)
     text = evalMath(text)
