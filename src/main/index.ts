@@ -12,7 +12,7 @@ let filePathToOpen: any = null;
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     title: 'BetterNotebook',
-    width: 1055,
+    width: 1100,
     height: 670,
     minWidth: 400,
     minHeight: 400,
