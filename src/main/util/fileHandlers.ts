@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs'
 
-function handleFileOpenArgument(mainWindow, filePathToOpen, lastOpenedFilePath) {
+function handleFileOpenArgument(mainWindow, filePathToOpen) {
     if (process.argv.length >= 2) {
         filePathToOpen = process.argv[1];
         fs.lstat(filePathToOpen, (err, stats) => {
@@ -9,7 +9,6 @@ function handleFileOpenArgument(mainWindow, filePathToOpen, lastOpenedFilePath) 
                 fs.readFile(filePathToOpen, 'utf8', (readErr, content) => {
                     if (!readErr) {
                         mainWindow.webContents.send('file-opened', content);
-                        lastOpenedFilePath = filePathToOpen;
                         mainWindow.setTitle(`${path.basename(filePathToOpen)} - BetterNotebook`);
                     }
                 });

@@ -32,9 +32,7 @@ function createWindow(): BrowserWindow {
     window.show()
     // mainWindow.webContents.openDevTools()
 
-    handleFileOpenArgument(window, filePathToOpen, (filePath: any) => {
-      windowFilePaths.set(window.id, filePath);
-    });
+    handleFileOpenArgument(window, filePathToOpen);
   })
 
   window.webContents.setWindowOpenHandler((details) => {
