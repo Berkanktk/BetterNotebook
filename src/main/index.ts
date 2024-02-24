@@ -5,13 +5,12 @@ import setupEventHandlers from './util/ipcHandlers'
 import setApplicationMenu from './util/menuTemplate'
 import handleFileOpenArgument from './util/fileHandlers'
 
-let mainWindow: BrowserWindow;
-let lastOpenedFilePath = '';
+let window: BrowserWindow;
 let filePathToOpen: any = null;
 const windowFilePaths = new Map<number, string>();
 
 function createWindow(): BrowserWindow {
-  mainWindow = new BrowserWindow({
+  window = new BrowserWindow({
     title: 'BetterNotebook',
     width: 1100,
     height: 670,
@@ -27,29 +26,31 @@ function createWindow(): BrowserWindow {
   })
 
   setupEventHandlers();
-  setApplicationMenu(mainWindow);
+  setApplicationMenu(window);
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+  window.on('ready-to-show', () => {
+    window.show()
     // mainWindow.webContents.openDevTools()
 
-    handleFileOpenArgument(mainWindow, filePathToOpen, lastOpenedFilePath)
+    handleFileOpenArgument(window, filePathToOpen, (filePath: any) => {
+      windowFilePaths.set(window.id, filePath);
+    });
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  window.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  loadWindowContents(mainWindow);
+  loadWindowContents(window);
 
   // temporary fix for ipchandling
-  mainWindow.on('close', (e) => {
-    if (mainWindow.isDestroyed()) {
+  window.on('close', (e) => {
+    if (window.isDestroyed()) {
       return;
     }
 
-    if (mainWindow.getTitle().startsWith('*')) {
+    if (window.getTitle().startsWith('*')) {
       e.preventDefault(); 
 
       const options: Electron.MessageBoxOptions = {
@@ -62,20 +63,20 @@ function createWindow(): BrowserWindow {
         noLink: true,
     };
 
-      dialog.showMessageBox(mainWindow, options).then((response) => {
+      dialog.showMessageBox(window, options).then((response) => {
         if (response.response === 0) {
           // save file
-          mainWindow.webContents.send('save-file');
+          window.webContents.send('save-file');
         } else if (response.response === 1) {
           // don't save
-          mainWindow.destroy(); 
+          window.destroy(); 
         }
         // Cancel
       });
     }
   });
     
-  return mainWindow;
+  return window;
 }
 
 function loadWindowContents(window: BrowserWindow) {
