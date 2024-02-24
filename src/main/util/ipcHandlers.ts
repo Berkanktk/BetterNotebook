@@ -3,9 +3,8 @@ import path, { basename } from 'path';
 import fs from 'fs'
 import { BrowserWindow } from 'electron/main';
 
-const windowFilePaths = new Map<number, string>();
 
-export default function setupEventHandlers() {
+export default function setupEventHandlers(windowFilePaths) {
     ipcMain.on('find', (event, searchTerm) => {
       const currentWindow = BrowserWindow.fromWebContents(event.sender);
       currentWindow?.webContents.findInPage(searchTerm, { matchCase: true });

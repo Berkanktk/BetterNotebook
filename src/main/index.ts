@@ -25,7 +25,7 @@ function createWindow(): BrowserWindow {
     }
   })
 
-  setupEventHandlers();
+  setupEventHandlers(windowFilePaths);
   setApplicationMenu(window);
 
   window.on('ready-to-show', () => {
