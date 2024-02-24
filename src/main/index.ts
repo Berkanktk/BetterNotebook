@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, dialog  } from 'electron'
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import setupEventHandlers from './util/ipcHandlers'
@@ -8,8 +8,9 @@ import handleFileOpenArgument from './util/fileHandlers'
 let mainWindow: BrowserWindow;
 let lastOpenedFilePath = '';
 let filePathToOpen: any = null;
+const windowFilePaths = new Map<number, string>();
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
     title: 'BetterNotebook',
     width: 1100,
@@ -25,6 +26,9 @@ function createWindow(): void {
     }
   })
 
+  setupEventHandlers();
+  setApplicationMenu(mainWindow);
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
     // mainWindow.webContents.openDevTools()
@@ -37,13 +41,55 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
+  loadWindowContents(mainWindow);
 
+  // temporary fix for ipchandling
+  mainWindow.on('close', (e) => {
+    if (mainWindow.isDestroyed()) {
+      return;
+    }
+
+    if (mainWindow.getTitle().startsWith('*')) {
+      e.preventDefault(); 
+
+      const options: Electron.MessageBoxOptions = {
+        type: 'question',
+        buttons: ['Save', 'Don\'t Save', 'Cancel'],
+        defaultId: 0,
+        cancelId: 2,
+        title: 'Confirm',
+        message: 'You have unsaved changes. Do you want to save them before closing?',
+        noLink: true,
+    };
+
+      dialog.showMessageBox(mainWindow, options).then((response) => {
+        if (response.response === 0) {
+          // save file
+          mainWindow.webContents.send('save-file');
+        } else if (response.response === 1) {
+          // don't save
+          mainWindow.destroy(); 
+        }
+        // Cancel
+      });
+    }
+  });
+    
+  return mainWindow;
+}
+
+function loadWindowContents(window: BrowserWindow) {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    window.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    window.loadFile(join(__dirname, '../renderer/index.html'));
   }
+}
 
+export function createNewNoteWindow(): void {
+  const newWindow = createWindow();
+
+  windowFilePaths.set(newWindow.id, '');
 }
 
 app.whenReady().then(() => {
@@ -53,12 +99,11 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  createWindow()
-  setupEventHandlers(mainWindow, lastOpenedFilePath)
-  setApplicationMenu(mainWindow)
+  // Create the main window
+  createNewNoteWindow();
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) createNewNoteWindow()
   })  
 })
 

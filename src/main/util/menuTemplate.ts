@@ -1,31 +1,31 @@
 import { app, shell, Menu, dialog } from 'electron'
+import { BrowserWindow } from 'electron/main';
+import { createNewNoteWindow } from '../index';
 
 let isWindows = process.platform === 'win32'
 
-function setApplicationMenu(mainWindow) {
-    const menuTemplate: any = [
+export default function setApplicationMenu(window: BrowserWindow) {
+    const menu = Menu.buildFromTemplate([
         {
           label: 'File',
           submenu: [
-            // {
-            //     label: 'New',
-            //     accelerator: 'Ctrl+N',
-            //     click: () => {
-            //         mainWindow.webContents.send('new-file');
-            //     }
-            // },
+            {
+                label: 'New',
+                accelerator: 'Ctrl+N',
+                click: () => createNewNoteWindow()
+            },
             {
               label: 'Save',
               accelerator: 'Ctrl+S',
               click: () => {
-                mainWindow.webContents.send('save-file');
+                window.webContents.send('save-file');
               }
             },
             {
               label: 'Open',
               accelerator: 'Ctrl+O',
               click: () => {
-                mainWindow.webContents.send('open-file');
+                window.webContents.send('open-file');
               }
             },
             {
@@ -103,8 +103,7 @@ function setApplicationMenu(mainWindow) {
           ]
         }
       ]
+    )
 
-      Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate))
+      window.setMenu(menu)
 }
-
-export default setApplicationMenu
