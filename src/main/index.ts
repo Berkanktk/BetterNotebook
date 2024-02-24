@@ -9,6 +9,8 @@ let window: BrowserWindow;
 let filePathToOpen: any = null;
 const windowFilePaths = new Map<number, string>();
 
+setupEventHandlers(windowFilePaths);
+
 function createWindow(): BrowserWindow {
   window = new BrowserWindow({
     title: 'BetterNotebook',
@@ -25,7 +27,6 @@ function createWindow(): BrowserWindow {
     }
   })
 
-  setupEventHandlers(windowFilePaths);
   setApplicationMenu(window);
 
   window.on('ready-to-show', () => {
