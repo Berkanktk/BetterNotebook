@@ -8,8 +8,7 @@ import handleFileOpenArgument from './util/fileHandlers'
 let window: BrowserWindow;
 let filePathToOpen: any = null;
 const windowFilePaths = new Map<number, string>();
-
-setupEventHandlers(windowFilePaths);
+export const unsavedChanges = new Map<number, boolean>();
 
 function createWindow(): BrowserWindow {
   window = new BrowserWindow({
@@ -28,6 +27,7 @@ function createWindow(): BrowserWindow {
   })
 
   setApplicationMenu(window);
+  loadWindowContents(window);
 
   window.on('ready-to-show', () => {
     window.show()
@@ -41,39 +41,7 @@ function createWindow(): BrowserWindow {
     return { action: 'deny' }
   })
 
-  loadWindowContents(window);
-
-  // temporary fix for ipchandling
-  window.on('close', (e) => {
-    if (window.isDestroyed()) {
-      return;
-    }
-
-    if (window.getTitle().startsWith('*')) {
-      e.preventDefault(); 
-
-      const options: Electron.MessageBoxOptions = {
-        type: 'question',
-        buttons: ['Save', 'Don\'t Save', 'Cancel'],
-        defaultId: 0,
-        cancelId: 2,
-        title: 'Confirm',
-        message: 'You have unsaved changes. Do you want to save them before closing?',
-        noLink: true,
-    };
-
-      dialog.showMessageBox(window, options).then((response) => {
-        if (response.response === 0) {
-          // save file
-          window.webContents.send('save-file');
-        } else if (response.response === 1) {
-          // don't save
-          window.destroy(); 
-        }
-        // Cancel
-      });
-    }
-  });
+  unsavedChanges.set(window.id, false);
     
   return window;
 }
@@ -89,6 +57,38 @@ function loadWindowContents(window: BrowserWindow) {
 export function createNewNoteWindow(): void {
   const newWindow = createWindow();
 
+  // temporary fix for ipchandling
+  newWindow.on('close', (e) => {
+    if (newWindow.isDestroyed()) {
+      return;
+    }
+
+    if (unsavedChanges.get(newWindow.id)) {
+      e.preventDefault(); 
+
+      const options: Electron.MessageBoxOptions = {
+        type: 'question',
+        buttons: ['Save', 'Don\'t Save', 'Cancel'],
+        defaultId: 0,
+        cancelId: 2,
+        title: 'Confirm',
+        message: 'You have unsaved changes. Do you want to save them before closing?',
+        noLink: true,
+    };
+
+      dialog.showMessageBox(newWindow, options).then((response) => {
+        if (response.response === 0) {
+          // save file
+          newWindow.webContents.send('save-file');
+        } else if (response.response === 1) {
+          // don't save
+          newWindow.destroy(); 
+        }
+        // Cancel
+      });
+    }
+  });
+
   windowFilePaths.set(newWindow.id, '');
 }
 
@@ -100,6 +100,7 @@ app.whenReady().then(() => {
   })
 
   // Create the main window
+  setupEventHandlers(windowFilePaths);
   createNewNoteWindow();
 
   app.on('activate', function () {

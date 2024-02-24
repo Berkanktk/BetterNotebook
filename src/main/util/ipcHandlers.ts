@@ -2,6 +2,7 @@ import { app, ipcMain, dialog } from 'electron'
 import path, { basename } from 'path';
 import fs from 'fs'
 import { BrowserWindow } from 'electron/main';
+import { unsavedChanges } from '..';
 
 
 export default function setupEventHandlers(windowFilePaths) {
@@ -20,6 +21,9 @@ export default function setupEventHandlers(windowFilePaths) {
       if (currentWindow && !currentWindow.getTitle().startsWith('*')) {
         currentWindow.setTitle(`*${currentWindow.getTitle()}`);
       }
+      
+      if (!currentWindow) return;
+      unsavedChanges.set(currentWindow.id, true);
     });
     
     ipcMain.on('open-dialog', (event) => {
@@ -53,6 +57,7 @@ export default function setupEventHandlers(windowFilePaths) {
       if (lastOpenedFilePath) {
         fs.writeFileSync(lastOpenedFilePath, content);
         currentWindow.setTitle(currentTitle.replace(/^\*/, ''));
+        unsavedChanges.set(currentWindow.id, false);
       } else {
         dialog.showSaveDialog(currentWindow, {
           title: 'Save text file',
@@ -64,6 +69,7 @@ export default function setupEventHandlers(windowFilePaths) {
             windowFilePaths.set(currentWindow.id, result.filePath);
             const filename = basename(result.filePath);
             currentWindow.setTitle(filename + " - BetterNotebook");
+            unsavedChanges.set(currentWindow.id, false);
           }
         }).catch(err => {
           console.error(err);
