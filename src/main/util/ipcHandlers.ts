@@ -60,6 +60,34 @@ function setupEventHandlers(mainWindow, lastOpenedFilePath) {
         });
       }
     });
+
+    mainWindow.on('close', (e) => {
+      if (mainWindow.getTitle().startsWith('*')) {
+          e.preventDefault();
+
+          const options: Electron.MessageBoxOptions = {
+              type: 'question',
+              buttons: ['Save', 'Don\'t Save', 'Cancel'],
+              defaultId: 0,
+              cancelId: 2,
+              title: 'Confirm',
+              message: 'You have unsaved changes. Do you want to save them before closing?',
+              noLink: true,
+          };
+
+          dialog.showMessageBox(mainWindow, options).then((response) => {
+              if (response.response === 0) {
+                  // Save file
+                  mainWindow.webContents.send('save-file');
+                } else if (response.response === 1) {
+                  // Don't save
+                  mainWindow.destroy();
+              }
+
+              // Cancel
+          });
+      }
+  });
     
     ipcMain.on('ping', () => console.log('pong'))
 
