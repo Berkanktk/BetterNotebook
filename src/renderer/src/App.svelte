@@ -150,8 +150,9 @@
   $: readingTime = text ? Math.ceil(text.split(' ').length / wordsPerMinute) : 0
   $: speechTime = text ? Math.ceil(text.split(' ').length / speechPerMinute) : 0
   $: averageWordLength = text
-    ? (text.replace(/ /g, '').length / text.split(' ').length).toFixed(2)
-    : (0.0).toFixed(2)
+    ? (text.replace(/•|\s/g, '')
+          .length / text.split(/\s+/).filter(Boolean).length).toFixed(2)
+    : (0.0).toFixed(2);
   $: paragraphs = text.split('\n\n').filter((para) => para.trim() !== '').length
   $: sentences = text.split(/\.|\!|\?/).filter((sentence) => sentence.trim() !== '').length
   $: if (searchQuery === '') {
