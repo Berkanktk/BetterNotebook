@@ -25,8 +25,8 @@ BetterNotebook comes packed with a variety of features designed to enhance your 
 - **Markdown-like List Creations:** Simplify list creation with markdown-like syntax:
     - `1.` starts a numbered list.
     - `*` starts a bullet list.
-- **Text Analysis:** View comprehensive statistics including the number of paragraphs, sentences, total words, and characters to gain insights into your writing.
-- **Read and Speak Times:** Estimate the total read and speak times for your text, aiding in the preparation of speeches and presentations.
+- **Text Analysis:** View comprehensive statistics including the number of characters(C), words(W), sentences(S), and paragraphs(P) in your text to gain insights into your writing.
+- **Read and Speak Times:** Estimate the total read(RT) and speak times(ST) for your text, aiding in the preparation of speeches and presentations.
 
 ## Getting Started
 
